@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>CCF Attendance</title>
+  <meta name="description" content="CCF Attendance Tracker – Light to Our Generation" />
+  <meta name="theme-color" content="#C8102E" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="CCF Attend" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="icon-192.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;900&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+
+  <style>
+    :root {
+      --red:       #C8102E;
+      --red-dark:  #A00D24;
+      --red-dim:   rgba(200,16,46,0.08);
+      --white:     #FFFFFF;
+      --snow:      #FDF9F9;
+      --border:    #F0E8E9;
+      --grey-1:    #F5F5F5;
+      --grey-2:    #E0E0E0;
+      --grey-3:    #9E9E9E;
+      --grey-4:    #616161;
+      --grey-5:    #212121;
+      --green:     #16A34A;
+      --green-bg:  #DCFCE7;
+      --amber:     #D97706;
+      --amber-bg:  #FEF3C7;
+      --r:         14px;
+      --r-sm:      10px;
+      --sh:        0 2px 16px rgba(0,0,0,0.07);
+      --sh-red:    0 4px 20px rgba(200,16,46,0.22);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--snow); color: var(--grey-5); -webkit-font-smoothing: antialiased; }
+    button { cursor: pointer; border: none; font-family: inherit; }
+    input, select { font-family: inherit; }
+
+    .screen { display: none; min-height: 100dvh; flex-direction: column; }
+    .screen.active { display: flex; }
+
+    #toast {
+      position: fixed; bottom: 28px; left: 50%;
+      transform: translateX(-50%) translateY(70px);
+      background: var(--grey-5); color: #fff;
+      padding: 11px 22px; border-radius: 100px;
+      font-size: 13px; font-weight: 500;
+      transition: transform .3s cubic-bezier(.34,1.56,.64,1);
+      z-index: 9999; pointer-events: none; white-space: nowrap;
+    }
+    #toast.show { transform: translateX(-50%) translateY(0); }
+    #toast.ok   { background: var(--green); }
+    #toast.err  { background: var(--red); }
+
+    /* Loading overlay */
+    #loadingOverlay {
+      position: fixed; inset: 0;
+      background: var(--red);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 99999; flex-direction: column; gap: 16px;
+    }
+    #loadingOverlay .spin {
+      width: 36px; height: 36px; border: 3px solid rgba(255,255,255,.3);
+      border-top-color: white; border-radius: 50%;
+      animation: spin .7s linear infinite;
+    }
+    #loadingOverlay p { color: white; font-size: 13px; opacity: .8; font-family: 'Montserrat', sans-serif; font-weight: 600; letter-spacing: 1px; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .auth-bg {
+      flex: 1; display: flex; align-items: center; justify-content: center;
+      padding: 32px 20px;
+      background: var(--red);
+    }
+    .auth-card {
+      background: var(--white); border-radius: 20px;
+      width: 100%; max-width: 400px;
+      overflow: hidden; box-shadow: 0 16px 48px rgba(0,0,0,0.18);
+    }
+    .auth-card-top {
+      background: var(--red); padding: 32px 28px 28px; text-align: center;
+    }
+    .auth-wordmark {
+      font-family: 'Montserrat', sans-serif; font-weight: 900;
+      font-size: 48px; letter-spacing: 6px; color: var(--white); line-height: 1;
+    }
+    .auth-mantra {
+      font-family: 'Montserrat', sans-serif; font-size: 11px; font-weight: 600;
+      letter-spacing: 2.5px; text-transform: uppercase;
+      color: rgba(255,255,255,0.65); margin-top: 8px;
+    }
+    .auth-card-body { padding: 28px 28px 32px; }
+    .auth-heading {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 16px; font-weight: 700; color: var(--grey-5); margin-bottom: 20px;
+    }
+    .fg { margin-bottom: 14px; }
+    .fg label {
+      display: block; font-size: 11px; font-weight: 600;
+      color: var(--grey-3); text-transform: uppercase;
+      letter-spacing: .8px; margin-bottom: 5px;
+    }
+    .fg input, .fg select {
+      width: 100%; padding: 12px 14px;
+      border: 1.5px solid var(--border); border-radius: var(--r-sm);
+      font-size: 14px; color: var(--grey-5); background: var(--snow);
+      transition: border-color .2s; outline: none;
+    }
+    .fg input:focus, .fg select:focus { border-color: var(--red); background: var(--white); }
+    .btn-red {
+      display: block; width: 100%; padding: 14px;
+      background: var(--red); color: var(--white);
+      font-family: 'Montserrat', sans-serif;
+      font-size: 14px; font-weight: 700; letter-spacing: .5px;
+      border-radius: var(--r-sm); transition: background .15s, transform .1s;
+      margin-top: 6px; text-align: center;
+    }
+    .btn-red:active { background: var(--red-dark); transform: scale(.98); }
+    .btn-red:disabled { background: var(--grey-2); color: var(--grey-3); cursor: not-allowed; transform: none; }
+    .btn-ghost {
+      display: block; width: 100%; padding: 12px;
+      background: transparent; color: var(--grey-4);
+      font-size: 13px; font-weight: 600;
+      border: 1.5px solid var(--border); border-radius: var(--r-sm);
+      margin-top: 10px; text-align: center; transition: border-color .2s;
+    }
+    .btn-ghost:active { border-color: var(--red); color: var(--red); }
+    .auth-footer {
+      text-align: center; margin-top: 16px;
+      font-size: 13px; color: var(--grey-3);
+    }
+    .auth-footer a { color: var(--red); font-weight: 600; cursor: pointer; text-decoration: none; }
+
+    .nav {
+      background: var(--red); color: var(--white);
+      padding: 14px 18px;
+      display: flex; align-items: center; justify-content: space-between;
+      position: sticky; top: 0; z-index: 100; box-shadow: var(--sh-red);
+    }
+    .nav-left { display: flex; align-items: center; gap: 10px; }
+    .nav-brand { font-family: 'Montserrat', sans-serif; font-weight: 900; font-size: 18px; letter-spacing: 2px; color: var(--white); }
+    .nav-divider { width: 1px; height: 24px; background: rgba(255,255,255,.25); }
+    .nav-info h2 { font-family: 'Montserrat', sans-serif; font-size: 13px; font-weight: 700; }
+    .nav-info p  { font-size: 11px; opacity: .7; margin-top: 1px; }
+    .btn-signout {
+      background: rgba(255,255,255,.15); color: var(--white);
+      padding: 7px 14px; border-radius: 100px;
+      font-size: 12px; font-weight: 600; transition: background .2s;
+    }
+    .btn-signout:active { background: rgba(255,255,255,.28); }
+
+    .body { flex: 1; overflow-y: auto; padding: 18px 16px 110px; }
+    @media(min-width:600px){ .body { max-width: 680px; margin: 0 auto; } }
+
+    .card { background: var(--white); border-radius: var(--r); padding: 16px; margin-bottom: 14px; box-shadow: var(--sh); }
+    .card-label { font-size: 11px; font-weight: 600; color: var(--grey-3); text-transform: uppercase; letter-spacing: .8px; display: block; margin-bottom: 7px; }
+    .card select { width: 100%; padding: 10px 12px; border: 1.5px solid var(--border); border-radius: var(--r-sm); font-size: 14px; color: var(--grey-5); background: var(--snow); outline: none; }
+
+    .banner { background: var(--red); border-radius: var(--r); padding: 20px; margin-bottom: 14px; box-shadow: var(--sh-red); color: var(--white); }
+    .banner h3 { font-family: 'Montserrat', sans-serif; font-size: 19px; font-weight: 800; }
+    .banner p { font-size: 12px; opacity: .75; margin-top: 3px; }
+    .live-pill { display: inline-flex; align-items: center; gap: 5px; background: rgba(255,255,255,.18); border-radius: 100px; padding: 4px 11px; font-size: 11px; font-weight: 600; margin-top: 10px; }
+    .dot { width: 7px; height: 7px; border-radius: 50%; background: #4ADE80; animation: blink 1.5s infinite; }
+    @keyframes blink { 0%,100%{opacity:1}50%{opacity:.35} }
+
+    .stats { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; margin-bottom: 14px; }
+    .stat { background: var(--white); border-radius: var(--r-sm); padding: 12px 8px; text-align: center; box-shadow: var(--sh); }
+    .stat-num { font-family: 'Montserrat', sans-serif; font-size: 26px; font-weight: 900; color: var(--red); line-height: 1; }
+    .stat-num.dim { color: var(--grey-2); }
+    .stat-lbl { font-size: 10px; color: var(--grey-3); text-transform: uppercase; letter-spacing: .7px; margin-top: 3px; }
+
+    .search { display: flex; align-items: center; gap: 8px; background: var(--white); border: 1.5px solid var(--border); border-radius: var(--r-sm); padding: 10px 13px; margin-bottom: 10px; }
+    .search svg { width: 15px; height: 15px; fill: var(--grey-3); flex-shrink: 0; }
+    .search input { flex: 1; border: none; background: transparent; font-size: 14px; color: var(--grey-5); outline: none; }
+    .search input::placeholder { color: var(--grey-3); }
+
+    .lhdr { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+    .lhdr h4 { font-family: 'Montserrat', sans-serif; font-size: 13px; font-weight: 700; }
+    .lhdr span { font-size: 11px; color: var(--grey-3); }
+
+    .mrow { background: var(--white); border-radius: var(--r-sm); display: flex; align-items: center; gap: 11px; padding: 11px 13px; margin-bottom: 7px; box-shadow: 0 1px 6px rgba(0,0,0,.05); }
+    .avatar { width: 38px; height: 38px; border-radius: 50%; background: var(--grey-1); display: flex; align-items: center; justify-content: center; font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 13px; color: var(--grey-4); flex-shrink: 0; }
+    .avatar.on { background: rgba(200,16,46,.12); color: var(--red); }
+    .minfo { flex: 1; }
+    .mname { font-size: 14px; font-weight: 600; }
+    .mstatus { font-size: 11px; color: var(--grey-3); margin-top: 1px; }
+
+    .tog { width: 50px; height: 27px; border-radius: 100px; background: var(--grey-2); flex-shrink: 0; position: relative; transition: background .22s; }
+    .tog.on { background: var(--green); }
+    .tog::after { content: ''; position: absolute; top: 3px; left: 3px; width: 21px; height: 21px; border-radius: 50%; background: var(--white); box-shadow: 0 1px 4px rgba(0,0,0,.18); transition: transform .22s cubic-bezier(.34,1.56,.64,1); }
+    .tog.on::after { transform: translateX(23px); }
+
+    .add-row { display: flex; gap: 8px; margin-top: 14px; }
+    .add-row input { flex: 1; padding: 10px 13px; border: 1.5px solid var(--border); border-radius: var(--r-sm); font-size: 14px; background: var(--white); color: var(--grey-5); outline: none; }
+    .add-row input:focus { border-color: var(--red); }
+    .btn-add { background: var(--red); color: var(--white); padding: 10px 16px; border-radius: var(--r-sm); font-size: 13px; font-weight: 700; font-family: 'Montserrat', sans-serif; white-space: nowrap; }
+    .btn-add:active { background: var(--red-dark); }
+
+    .fab { position: fixed; bottom: 20px; left: 16px; right: 16px; background: var(--red); color: var(--white); padding: 16px; border-radius: var(--r-sm); font-family: 'Montserrat', sans-serif; font-size: 15px; font-weight: 700; letter-spacing: .4px; box-shadow: var(--sh-red); transition: transform .15s, background .15s; text-align: center; }
+    .fab:active { transform: scale(.98); background: var(--red-dark); }
+
+    .overlay { position: fixed; inset: 0; background: rgba(0,0,0,.45); display: flex; align-items: center; justify-content: center; z-index: 999; padding: 24px; }
+    .ocard { background: var(--white); border-radius: 20px; padding: 32px 24px; text-align: center; max-width: 320px; width: 100%; }
+    .ocard .icon { width: 64px; height: 64px; border-radius: 50%; background: var(--green-bg); display: flex; align-items: center; justify-content: center; margin: 0 auto 14px; }
+    .ocard .icon svg { width: 32px; height: 32px; fill: var(--green); }
+    .ocard h3 { font-family: 'Montserrat', sans-serif; font-size: 19px; font-weight: 800; margin-bottom: 7px; }
+    .ocard p  { font-size: 13px; color: var(--grey-4); line-height: 1.55; }
+
+    .tabs { display: flex; background: var(--white); margin: 0 0 14px; border-radius: var(--r-sm); padding: 4px; box-shadow: var(--sh); }
+    .tab { flex: 1; padding: 9px 4px; text-align: center; font-size: 12px; font-weight: 600; color: var(--grey-3); border-radius: 8px; transition: all .2s; background: transparent; font-family: 'Montserrat', sans-serif; }
+    .tab.on { background: var(--red); color: var(--white); }
+
+    .panel { display: none; }
+    .panel.on { display: block; }
+
+    .scard { background: var(--white); border-radius: var(--r); padding: 16px; margin-bottom: 12px; box-shadow: var(--sh); }
+    .scard-hd { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+    .scard-title { font-family: 'Montserrat', sans-serif; font-size: 14px; font-weight: 700; }
+    .badge { padding: 3px 10px; border-radius: 100px; font-size: 11px; font-weight: 700; }
+    .badge.g { background: var(--green-bg); color: var(--green); }
+    .badge.a { background: var(--amber-bg); color: var(--amber); }
+    .badge.r { background: rgba(200,16,46,.1); color: var(--red); }
+    .badge.p { background: var(--grey-1); color: var(--grey-3); }
+
+    .pbar { height: 7px; background: var(--grey-1); border-radius: 100px; overflow: hidden; margin-top: 5px; }
+    .pfill { height: 100%; border-radius: 100px; transition: width .55s; }
+    .pfill.g { background: var(--green); }
+    .pfill.a { background: var(--amber); }
+    .pfill.r { background: var(--red); }
+    .plabels { display: flex; justify-content: space-between; font-size: 11px; color: var(--grey-4); }
+
+    .sum-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; margin-bottom: 14px; }
+    .sum-mini { background: var(--white); border-radius: var(--r-sm); padding: 12px 8px; text-align: center; box-shadow: var(--sh); }
+    .sum-val { font-family: 'Montserrat', sans-serif; font-size: 22px; font-weight: 900; color: var(--red); }
+    .sum-lbl { font-size: 10px; color: var(--grey-3); text-transform: uppercase; letter-spacing: .7px; margin-top: 2px; }
+
+    .chips { display: flex; gap: 7px; overflow-x: auto; padding-bottom: 4px; margin-bottom: 12px; }
+    .chip { padding: 6px 13px; border-radius: 100px; font-size: 12px; font-weight: 600; background: var(--white); color: var(--grey-4); border: 1.5px solid var(--border); white-space: nowrap; flex-shrink: 0; cursor: pointer; }
+    .chip.on { background: var(--red); color: var(--white); border-color: var(--red); }
+
+    .htbl { width: 100%; border-collapse: collapse; }
+    .htbl th { text-align: left; font-size: 10px; font-weight: 600; color: var(--grey-3); text-transform: uppercase; letter-spacing: .7px; padding: 7px 10px; border-bottom: 1px solid var(--border); }
+    .htbl td { padding: 9px 10px; font-size: 12px; border-bottom: 1px solid var(--grey-1); }
+    .htbl tr:last-child td { border-bottom: none; }
+
+    .setup-section { background: var(--white); border-radius: var(--r); padding: 16px; margin-bottom: 12px; box-shadow: var(--sh); }
+    .setup-section h4 { font-family: 'Montserrat', sans-serif; font-size: 11px; font-weight: 700; color: var(--grey-3); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; }
+    .urow { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--grey-1); }
+    .urow:last-child { border-bottom: none; }
+    .uinfo { flex: 1; }
+    .uname { font-size: 13px; font-weight: 600; }
+    .umeta { font-size: 11px; color: var(--grey-3); }
+    .rbadge { padding: 3px 9px; border-radius: 100px; font-size: 10px; font-weight: 700; }
+    .rbadge.admin  { background: rgba(200,16,46,.1); color: var(--red); }
+    .rbadge.leader { background: var(--grey-1); color: var(--grey-4); }
+
+    .empty { text-align: center; padding: 32px 16px; font-size: 13px; color: var(--grey-3); }
+
+    .fab { bottom: calc(20px + env(safe-area-inset-bottom)); }
+    .body { padding-bottom: calc(110px + env(safe-area-inset-bottom)); }
+    .nav { padding-top: calc(14px + env(safe-area-inset-top)); }
+  </style>
+</head>
+<body>
+
+<div id="loadingOverlay">
+  <div class="spin"></div>
+  <p>LOADING…</p>
+</div>
+
+<div id="toast"></div>
+
+<!-- LOGIN -->
+<div id="sLogin" class="screen">
+  <div class="auth-bg">
+    <div class="auth-card">
+      <div class="auth-card-top">
+        <div class="auth-wordmark">CCF</div>
+        <div class="auth-mantra">Light to Our Generation</div>
+      </div>
+      <div class="auth-card-body">
+        <div class="auth-heading">Sign in to your account</div>
+        <div class="fg"><label>Username</label><input type="text" id="lUser" placeholder="Enter username" autocomplete="username" /></div>
+        <div class="fg"><label>Password</label><input type="password" id="lPass" placeholder="Enter password" autocomplete="current-password" /></div>
+        <button class="btn-red" id="loginBtn" onclick="doLogin()">Sign In</button>
+        <div class="auth-footer">Hall/Hostel leader? <a onclick="show('sRegister')">Register here</a></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- REGISTER -->
+<div id="sRegister" class="screen">
+  <div class="auth-bg">
+    <div class="auth-card">
+      <div class="auth-card-top">
+        <div class="auth-wordmark">CCF</div>
+        <div class="auth-mantra">Light to Our Generation</div>
+      </div>
+      <div class="auth-card-body">
+        <div class="auth-heading">Register your Hall / Hostel</div>
+        <div class="fg"><label>Hall / Hostel Name</label><input type="text" id="rUnit" placeholder="e.g. Unity Hall, Akuafo Hall…" /></div>
+        <div class="fg"><label>Your Full Name</label><input type="text" id="rName" placeholder="Your name" /></div>
+        <div class="fg"><label>Username</label><input type="text" id="rUser" placeholder="Choose a username" autocomplete="username" /></div>
+        <div class="fg"><label>Password</label><input type="password" id="rPass" placeholder="Choose a password" autocomplete="new-password" /></div>
+        <button class="btn-red" id="registerBtn" onclick="doRegister()">Create Account</button>
+        <button class="btn-ghost" onclick="show('sLogin')">← Back to Sign In</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- LEADER -->
+<div id="sLeader" class="screen">
+  <div class="nav">
+    <div class="nav-left">
+      <div class="nav-brand">CCF</div>
+      <div class="nav-divider"></div>
+      <div class="nav-info">
+        <h2 id="lNavUnit">Hall</h2>
+        <p  id="lNavName">Leader</p>
+      </div>
+    </div>
+    <button class="btn-signout" onclick="doLogout()">Sign Out</button>
+  </div>
+  <div class="body">
+    <div class="card">
+      <span class="card-label">Service</span>
+      <select id="svcSel">
+        <option value="s1">Sunday — First Service</option>
+        <option value="s2">Sunday — Second Service</option>
+        <option value="mw">Midweek Service</option>
+        <option value="pm">Prayer Meeting</option>
+        <option value="sp">Special Programme</option>
+      </select>
+    </div>
+    <div class="banner">
+      <h3 id="banUnit">—</h3>
+      <p  id="banDate">—</p>
+      <div class="live-pill"><div class="dot"></div>Live Attendance</div>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="stat-num" id="sP">0</div><div class="stat-lbl">Present</div></div>
+      <div class="stat"><div class="stat-num dim" id="sA">0</div><div class="stat-lbl">Absent</div></div>
+      <div class="stat"><div class="stat-num" id="sT">0</div><div class="stat-lbl">Total</div></div>
+      <div class="stat"><div class="stat-num" id="sPct">0%</div><div class="stat-lbl">Rate</div></div>
+    </div>
+    <div class="search">
+      <svg viewBox="0 0 24 24"><path d="M10 2a8 8 0 105.29 13.71l4.5 4.5 1.42-1.42-4.5-4.5A8 8 0 0010 2zm0 2a6 6 0 110 12A6 6 0 0110 4z"/></svg>
+      <input type="text" id="mSearch" placeholder="Search members…" oninput="renderMembers()" />
+    </div>
+    <div class="lhdr">
+      <h4>Members</h4>
+      <span id="mCount"></span>
+    </div>
+    <div id="mList"></div>
+    <div class="add-row">
+      <input type="text" id="mNew" placeholder="Add member name…" />
+      <button class="btn-add" onclick="addMember()">+ Add</button>
+    </div>
+  </div>
+  <button class="fab" onclick="submitAtt()">✓ Submit Attendance</button>
+</div>
+
+<!-- Submit overlay -->
+<div id="oSubmit" class="overlay" style="display:none">
+  <div class="ocard">
+    <div class="icon"><svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg></div>
+    <h3>Submitted!</h3>
+    <p id="oMsg"></p>
+    <button class="btn-red" style="margin-top:18px" onclick="closeSubmit()">Done</button>
+  </div>
+</div>
+
+<!-- ADMIN -->
+<div id="sAdmin" class="screen">
+  <div class="nav">
+    <div class="nav-left">
+      <div class="nav-brand">CCF</div>
+      <div class="nav-divider"></div>
+      <div class="nav-info">
+        <h2>Admin Dashboard</h2>
+        <p id="aNavName">Administrator</p>
+      </div>
+    </div>
+    <button class="btn-signout" onclick="doLogout()">Sign Out</button>
+  </div>
+  <div class="body">
+    <div class="tabs">
+      <button class="tab on"  onclick="switchTab('Overview')">Overview</button>
+      <button class="tab"     onclick="switchTab('Halls')">Halls</button>
+      <button class="tab"     onclick="switchTab('History')">History</button>
+      <button class="tab"     onclick="switchTab('Setup')">Setup</button>
+    </div>
+
+    <div id="pOverview" class="panel on">
+      <div style="margin-bottom:12px">
+        <select id="aSvc" onchange="renderOverview()" style="width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:var(--r-sm);font-size:13px;background:var(--white);outline:none;">
+          <option value="s1">Sunday — First Service</option>
+          <option value="s2">Sunday — Second Service</option>
+          <option value="mw">Midweek Service</option>
+          <option value="pm">Prayer Meeting</option>
+          <option value="sp">Special Programme</option>
+        </select>
+      </div>
+      <div class="sum-grid" id="oSum"></div>
+      <div id="oCards"></div>
+    </div>
+
+    <div id="pHalls" class="panel">
+      <div id="hCards"></div>
+    </div>
+
+    <div id="pHistory" class="panel">
+      <div class="chips" id="hChips"></div>
+      <div class="scard" style="overflow-x:auto">
+        <table class="htbl">
+          <thead><tr><th>Date</th><th>Hall / Hostel</th><th>Service</th><th>Present</th><th>Total</th><th>%</th></tr></thead>
+          <tbody id="hBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div id="pSetup" class="panel">
+      <div class="setup-section">
+        <h4>Registered Leaders</h4>
+        <div id="uList"></div>
+      </div>
+      <div class="setup-section">
+        <h4>Change Admin Password</h4>
+        <div class="fg"><label>Current Password</label><input type="password" id="pwCur" placeholder="Current password" /></div>
+        <div class="fg"><label>New Password</label><input type="password" id="pwNew" placeholder="New password" /></div>
+        <div class="fg"><label>Confirm New Password</label><input type="password" id="pwCon" placeholder="Confirm password" /></div>
+        <button class="btn-red" onclick="changePwd()">Update Password</button>
+      </div>
+      <div class="setup-section" style="border:1.5px solid rgba(200,16,46,.25)">
+        <h4 style="color:var(--red)">Remove a Leader</h4>
+        <p style="font-size:12px;color:var(--grey-4);margin-bottom:12px">Their attendance records are kept.</p>
+        <div class="fg"><label>Select Leader</label><select id="delSel"></select></div>
+        <button class="btn-red" style="background:var(--grey-4)" onclick="removeLeader()">Remove</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Firebase SDK -->
+<script type="module">
+  import { initializeApp }                          from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getFirestore, doc, getDoc, setDoc,
+           collection, getDocs, addDoc, deleteDoc,
+           query, orderBy, where, updateDoc }       from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+  // ── YOUR FIREBASE CONFIG ──
+  const firebaseConfig = {
+    apiKey:            "AIzaSyD8NFqxOjVNHFCgB2uzr7gyr28ho6eJYiU",
+    authDomain:        "ccf-database-9966e.firebaseapp.com",
+    projectId:         "ccf-database-9966e",
+    storageBucket:     "ccf-database-9966e.firebasestorage.app",
+    messagingSenderId: "834572794978",
+    appId:             "1:834572794978:web:d31ec4c9229801b473a53b"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db  = getFirestore(app);
+
+  // ── STATE ──
+  let CU  = null;   // current user
+  let ATT = {};     // current attendance map  { memberName: true/false }
+
+  // ── HELPERS ──
+  function show(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+  }
+  function v(id)     { return document.getElementById(id).value.trim(); }
+  function esc(s)    { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+  function fmtFull(d){ return d.toLocaleDateString('en-GB',{weekday:'long',year:'numeric',month:'long',day:'numeric'}); }
+  function fmtShort(s){ const d=new Date(s); return d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}); }
+  function rel(s)    { const d=(Date.now()-new Date(s))/1000; return d<60?'just now':d<3600?Math.floor(d/60)+'m ago':d<86400?Math.floor(d/3600)+'h ago':Math.floor(d/86400)+'d ago'; }
+  function svcLbl(s) { return {s1:'1st Service',s2:'2nd Service',mw:'Midweek',pm:'Prayer Mtg',sp:'Special'}[s]||s; }
+  function set(id,h) { const el=document.getElementById(id); if(!el)return; el[typeof h==='string'&&h.includes('<')?'innerHTML':'textContent']=h; }
+
+  let tTimer;
+  function toast(msg, type='') {
+    const el = document.getElementById('toast');
+    el.textContent = msg; el.className = 'show ' + type;
+    clearTimeout(tTimer); tTimer = setTimeout(() => el.className = '', 3000);
+  }
+
+  function setLoading(on) {
+    document.getElementById('loadingOverlay').style.display = on ? 'flex' : 'none';
+  }
+
+  function btnLoading(id, on, label='') {
+    const btn = document.getElementById(id);
+    if (!btn) return;
+    btn.disabled   = on;
+    btn.textContent = on ? 'Please wait…' : label;
+  }
+
+  // ── SESSION (sessionStorage so refresh keeps you logged in) ──
+  function persist() { sessionStorage.setItem('ccf_ses', JSON.stringify(CU)); }
+  function restore() {
+    try {
+      const s = sessionStorage.getItem('ccf_ses');
+      if (!s) { setLoading(false); show('sLogin'); return; }
+      CU = JSON.parse(s);
+      CU.role === 'admin' ? showAdmin() : showLeader();
+    } catch { setLoading(false); show('sLogin'); }
+  }
+
+  // ── AUTH ──
+  window.doLogin = async function() {
+    const u = v('lUser'), p = v('lPass');
+    if (!u || !p) { toast('Enter username and password', 'err'); return; }
+    btnLoading('loginBtn', true, 'Sign In');
+    try {
+      // Check admin doc
+      const adminDoc = await getDoc(doc(db, 'config', 'admin'));
+      if (adminDoc.exists()) {
+        const a = adminDoc.data();
+        if (u === a.username && p === a.password) {
+          CU = { username: a.username, name: a.name || 'CCF Admin', role: 'admin' };
+          persist(); showAdmin(); return;
+        }
+      }
+      // Check leaders
+      const snap = await getDocs(query(collection(db, 'users'), where('username','==',u)));
+      if (snap.empty) { toast('Incorrect credentials', 'err'); return; }
+      const userDoc = snap.docs[0].data();
+      if (userDoc.password !== p) { toast('Incorrect credentials', 'err'); return; }
+      CU = { ...userDoc, id: snap.docs[0].id, role: 'leader' };
+      persist(); showLeader();
+    } catch(e) {
+      toast('Connection error — check internet', 'err');
+      console.error(e);
+    } finally {
+      btnLoading('loginBtn', false, 'Sign In');
+    }
+  };
+
+  window.doRegister = async function() {
+    const unit = v('rUnit'), name = v('rName'), user = v('rUser'), pass = v('rPass');
+    if (!unit||!name||!user||!pass) { toast('Please fill all fields', 'err'); return; }
+    btnLoading('registerBtn', true, 'Create Account');
+    try {
+      // Check username taken
+      const adminDoc = await getDoc(doc(db, 'config', 'admin'));
+      if (adminDoc.exists() && adminDoc.data().username === user) {
+        toast('Username already taken', 'err'); return;
+      }
+      const snap = await getDocs(query(collection(db, 'users'), where('username','==',user)));
+      if (!snap.empty) { toast('Username already taken', 'err'); return; }
+
+      // Save new leader
+      await addDoc(collection(db, 'users'), { username: user, password: pass, name, unit });
+      toast('Account created — sign in!', 'ok');
+      ['rUnit','rName','rUser','rPass'].forEach(id => document.getElementById(id).value = '');
+      show('sLogin');
+    } catch(e) {
+      toast('Registration failed — check internet', 'err');
+      console.error(e);
+    } finally {
+      btnLoading('registerBtn', false, 'Create Account');
+    }
+  };
+
+  window.doLogout = function() {
+    CU = null;
+    sessionStorage.removeItem('ccf_ses');
+    show('sLogin');
+    document.getElementById('lUser').value = '';
+    document.getElementById('lPass').value = '';
+  };
+
+  // ── LEADER SCREEN ──
+  async function showLeader() {
+    show('sLeader');
+    set('lNavUnit', CU.unit);
+    set('lNavName',  CU.name);
+    set('banUnit',   CU.unit);
+    set('banDate',   fmtFull(new Date()));
+    setLoading(false);
+    ATT = {};
+    // Load members from Firestore
+    try {
+      const snap = await getDocs(query(collection(db, 'members'), where('unit','==',CU.unit)));
+      snap.forEach(d => { ATT[d.data().name] = false; });
+    } catch(e) { console.error(e); }
+    counts(); renderMembers();
+  }
+
+  window.renderMembers = function() {
+    const q     = document.getElementById('mSearch').value.toLowerCase();
+    const names = Object.keys(ATT).filter(n => n.toLowerCase().includes(q));
+    set('mCount', names.length + ' members');
+    const el = document.getElementById('mList');
+    if (!names.length) { el.innerHTML = '<div class="empty">No members yet — add one below.</div>'; return; }
+    el.innerHTML = names.map(n => {
+      const on  = ATT[n];
+      const ini = n.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+      return `<div class="mrow">
+        <div class="avatar ${on?'on':''}">${ini}</div>
+        <div class="minfo">
+          <div class="mname">${esc(n)}</div>
+          <div class="mstatus">${on?'✅ Present':'—'}</div>
+        </div>
+        <button class="tog ${on?'on':''}" onclick="tog('${n.replace(/\\/g,'\\\\').replace(/'/g,"\\'")}')"></button>
+      </div>`;
+    }).join('');
+  };
+
+  window.tog = function(n) { ATT[n] = !ATT[n]; counts(); renderMembers(); };
+
+  function counts() {
+    const vals = Object.values(ATT);
+    const p = vals.filter(Boolean).length, t = vals.length;
+    set('sP', p); set('sA', t-p); set('sT', t);
+    set('sPct', t ? Math.round(p/t*100)+'%' : '0%');
+  }
+
+  window.addMember = async function() {
+    const el = document.getElementById('mNew');
+    const n  = el.value.trim();
+    if (!n) return;
+    if (ATT.hasOwnProperty(n)) { toast('Already in list', 'err'); return; }
+    try {
+      await addDoc(collection(db, 'members'), { name: n, unit: CU.unit });
+      ATT[n] = false; el.value = '';
+      counts(); renderMembers(); toast(n + ' added', 'ok');
+    } catch(e) { toast('Failed to add member', 'err'); console.error(e); }
+  };
+
+  window.submitAtt = async function() {
+    const svc = document.getElementById('svcSel').value;
+    const pr  = Object.entries(ATT).filter(([,v])=>v).map(([k])=>k);
+    const t   = Object.keys(ATT).length;
+    const pct = t ? Math.round(pr.length/t*100) : 0;
+    try {
+      await addDoc(collection(db, 'records'), {
+        unit: CU.unit, service: svc,
+        date: new Date().toISOString(),
+        present: pr.length, absent: t-pr.length,
+        total: t, pct, presentNames: pr, by: CU.username
+      });
+      set('oMsg', `${pr.length} of ${t} marked present (${pct}%) for ${svcLbl(svc)}.`);
+      document.getElementById('oSubmit').style.display = 'flex';
+    } catch(e) { toast('Submit failed — check internet', 'err'); console.error(e); }
+  };
+
+  window.closeSubmit = function() {
+    document.getElementById('oSubmit').style.display = 'none';
+    showLeader();
+  };
+
+  // ── ADMIN SCREEN ──
+  async function showAdmin() {
+    show('sAdmin');
+    set('aNavName', CU.name);
+    setLoading(false);
+    await renderOverview();
+    renderHalls();
+    renderHistory('all');
+    renderSetup();
+  }
+
+  window.renderOverview = async function() {
+    const svc = document.getElementById('aSvc') ? document.getElementById('aSvc').value : 's1';
+    try {
+      const [usersSnap, recordsSnap] = await Promise.all([
+        getDocs(collection(db, 'users')),
+        getDocs(query(collection(db, 'records'), orderBy('date','desc')))
+      ]);
+      const users   = usersSnap.docs.map(d => d.data());
+      const records = recordsSnap.docs.map(d => d.data());
+      const units   = [...new Set(users.map(u => u.unit))];
+
+      const latest = {};
+      records.filter(r => r.service === svc)
+        .slice().reverse()
+        .forEach(r => { latest[r.unit] = r; });
+
+      const recs = Object.values(latest);
+      const tp   = recs.reduce((a,r)=>a+r.present,0);
+      const tt   = recs.reduce((a,r)=>a+r.total,0);
+      const avg  = recs.length ? Math.round(recs.reduce((a,r)=>a+r.pct,0)/recs.length) : 0;
+
+      set('oSum', `
+        <div class="sum-mini"><div class="sum-val">${recs.length}</div><div class="sum-lbl">Reported</div></div>
+        <div class="sum-mini"><div class="sum-val">${units.length - recs.length}</div><div class="sum-lbl">Pending</div></div>
+        <div class="sum-mini"><div class="sum-val">${tp}</div><div class="sum-lbl">Present</div></div>
+        <div class="sum-mini"><div class="sum-val">${tt-tp}</div><div class="sum-lbl">Absent</div></div>
+        <div class="sum-mini"><div class="sum-val">${tt}</div><div class="sum-lbl">Total</div></div>
+        <div class="sum-mini"><div class="sum-val">${avg}%</div><div class="sum-lbl">Avg</div></div>
+      `);
+
+      set('oCards', units.length ? units.map(u => {
+        const r  = latest[u];
+        if (!r) return `<div class="scard">
+          <div class="scard-hd"><div class="scard-title">${u}</div><span class="badge p">Pending</span></div>
+          <div style="font-size:12px;color:var(--grey-3)">No attendance submitted for this service</div>
+        </div>`;
+        const bc = r.pct>=75?'g':r.pct>=50?'a':'r';
+        return `<div class="scard">
+          <div class="scard-hd"><div class="scard-title">${u}</div><span class="badge ${bc}">${r.pct}%</span></div>
+          <div class="plabels"><span>${r.present} present</span><span>${r.total} total</span></div>
+          <div class="pbar"><div class="pfill ${bc}" style="width:${r.pct}%"></div></div>
+          <div style="font-size:11px;color:var(--grey-3);margin-top:6px">Submitted ${rel(r.date)} · by ${r.by}</div>
+        </div>`;
+      }).join('') : '<div class="empty">No halls registered yet.</div>');
+    } catch(e) { console.error(e); toast('Failed to load overview', 'err'); }
+  };
+
+  window.renderHalls = async function() {
+    try {
+      const [usersSnap, recordsSnap, membersSnap] = await Promise.all([
+        getDocs(collection(db, 'users')),
+        getDocs(query(collection(db, 'records'), orderBy('date','desc'))),
+        getDocs(collection(db, 'members'))
+      ]);
+      const users   = usersSnap.docs.map(d => d.data());
+      const records = recordsSnap.docs.map(d => d.data());
+      const members = membersSnap.docs.map(d => d.data());
+      const units   = [...new Set(users.map(u => u.unit))];
+
+      set('hCards', units.length ? units.map(u => {
+        const recs  = records.filter(r => r.unit === u).slice(0, 5);
+        const mCnt  = members.filter(m => m.unit === u).length;
+        return `<div class="scard">
+          <div class="scard-hd">
+            <div class="scard-title">${u}</div>
+            <span style="font-size:11px;color:var(--grey-3)">${mCnt} members</span>
+          </div>
+          ${recs.length ? recs.map(r=>`
+            <div style="margin-bottom:9px">
+              <div class="plabels"><span>${svcLbl(r.service)} · ${fmtShort(r.date)}</span><span>${r.present}/${r.total} · ${r.pct}%</span></div>
+              <div class="pbar"><div class="pfill ${r.pct>=75?'g':r.pct>=50?'a':'r'}" style="width:${r.pct}%"></div></div>
+            </div>`).join('') : '<div style="font-size:12px;color:var(--grey-3)">No records yet</div>'}
+        </div>`;
+      }).join('') : '<div class="empty">No halls registered yet.</div>');
+    } catch(e) { console.error(e); }
+  };
+
+  let hFilter = 'all';
+  window.renderHistory = async function(f) {
+    hFilter = f || hFilter;
+    try {
+      const [usersSnap, recordsSnap] = await Promise.all([
+        getDocs(collection(db, 'users')),
+        getDocs(query(collection(db, 'records'), orderBy('date','desc')))
+      ]);
+      const users   = usersSnap.docs.map(d => d.data());
+      const records = recordsSnap.docs.map(d => d.data());
+      const units   = [...new Set(users.map(u => u.unit))];
+
+      set('hChips', ['all', ...units].map(u =>
+        `<button class="chip ${hFilter===u?'on':''}" onclick="renderHistory('${u}')">${u==='all'?'All Halls':u}</button>`
+      ).join(''));
+
+      const recs = hFilter === 'all' ? records : records.filter(r => r.unit === hFilter);
+      set('hBody', recs.length ? recs.map(r=>`<tr>
+        <td>${fmtShort(r.date)}</td><td>${r.unit}</td><td>${svcLbl(r.service)}</td>
+        <td><strong>${r.present}</strong></td><td>${r.total}</td>
+        <td><span class="badge ${r.pct>=75?'g':r.pct>=50?'a':'r'}">${r.pct}%</span></td>
+      </tr>`).join('') : `<tr><td colspan="6" style="text-align:center;color:var(--grey-3);padding:20px">No records yet</td></tr>`);
+    } catch(e) { console.error(e); }
+  };
+
+  window.renderSetup = async function() {
+    try {
+      const snap  = await getDocs(collection(db, 'users'));
+      const users = snap.docs.map(d => ({ ...d.data(), id: d.id }));
+      set('uList', users.length ? users.map(u=>`
+        <div class="urow">
+          <div class="uinfo"><div class="uname">${u.name}</div><div class="umeta">${u.username} · ${u.unit}</div></div>
+          <span class="rbadge leader">Leader</span>
+        </div>`).join('') : '<div style="font-size:12px;color:var(--grey-3)">No leaders yet.</div>');
+      document.getElementById('delSel').innerHTML =
+        `<option value="">— Select leader —</option>` +
+        users.map(u=>`<option value="${u.id}">${u.name} (${u.unit})</option>`).join('');
+    } catch(e) { console.error(e); }
+  };
+
+  window.changePwd = async function() {
+    const c = v('pwCur'), n = v('pwNew'), cf = v('pwCon');
+    try {
+      const adminDoc = await getDoc(doc(db, 'config', 'admin'));
+      if (!adminDoc.exists() || adminDoc.data().password !== c) { toast('Current password incorrect', 'err'); return; }
+      if (!n) { toast('New password cannot be empty', 'err'); return; }
+      if (n !== cf) { toast('Passwords do not match', 'err'); return; }
+      await updateDoc(doc(db, 'config', 'admin'), { password: n });
+      ['pwCur','pwNew','pwCon'].forEach(id => document.getElementById(id).value = '');
+      toast('Password updated', 'ok');
+    } catch(e) { toast('Update failed', 'err'); console.error(e); }
+  };
+
+  window.removeLeader = async function() {
+    const id = document.getElementById('delSel').value;
+    if (!id) { toast('Select a leader first', 'err'); return; }
+    try {
+      const snap = await getDoc(doc(db, 'users', id));
+      const u    = snap.data();
+      if (!u || !confirm(`Remove ${u.name} (${u.unit})?`)) return;
+      await deleteDoc(doc(db, 'users', id));
+      renderSetup(); toast(u.name + ' removed');
+    } catch(e) { toast('Failed to remove leader', 'err'); console.error(e); }
+  };
+
+  window.switchTab = function(name) {
+    const all = ['Overview','Halls','History','Setup'];
+    document.querySelectorAll('.tab').forEach((b,i) => b.classList.toggle('on', all[i]===name));
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('on'));
+    document.getElementById('p'+name).classList.add('on');
+    if (name==='Overview') renderOverview();
+    if (name==='Halls')    renderHalls();
+    if (name==='History')  renderHistory(hFilter);
+    if (name==='Setup')    renderSetup();
+  };
+
+  // Enter key on login/register
+  document.addEventListener('keydown', e => {
+    if (e.key !== 'Enter') return;
+    const active = document.querySelector('.screen.active');
+    if (active?.id === 'sLogin')    doLogin();
+    if (active?.id === 'sRegister') doRegister();
+  });
+
+  // ── BOOT ──
+  // Seed admin doc if it doesn't exist yet
+  async function boot() {
+    try {
+      const adminRef = doc(db, 'config', 'admin');
+      const adminDoc = await getDoc(adminRef);
+      if (!adminDoc.exists()) {
+        await setDoc(adminRef, { username: 'ccfadmin', password: 'Admin#CCF!9', name: 'CCF Admin' });
+      }
+      restore();
+    } catch(e) {
+      console.error(e);
+      setLoading(false);
+      show('sLogin');
+      toast('Could not connect to database', 'err');
+    }
+  }
+
+  window.addEventListener('load', boot);
+</script>
+
+</body>
+</html>
