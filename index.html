@@ -279,15 +279,8 @@
 
     .empty { text-align: center; padding: 32px 16px; font-size: 13px; color: var(--grey-3); }
 
-    /* Location tracker */
-    .loc-btn { background: var(--red); color: var(--white); width: 100%; padding: 13px; border-radius: var(--r-sm); font-family: 'Montserrat', sans-serif; font-size: 14px; font-weight: 700; letter-spacing: .4px; margin-bottom: 14px; transition: background .15s; }
-    .loc-btn:active { background: var(--red-dark); }
-    .loc-btn.secondary { background: var(--grey-1); color: var(--grey-5); }
-    .loc-row { background: var(--white); border-radius: var(--r-sm); padding: 11px 13px; margin-bottom: 7px; box-shadow: 0 1px 6px rgba(0,0,0,.05); display: flex; align-items: center; gap: 10px; }
-    .loc-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--grey-2); flex-shrink: 0; }
-    .loc-dot.ok { background: var(--green); }
-    .loc-dot.err { background: var(--red); }
-    .loc-info { flex: 1; }
+    /* Unit-type section headers */
+    .unit-type-hd { font-family: 'Montserrat', sans-serif; font-size: 11px; font-weight: 800; color: var(--grey-3); text-transform: uppercase; letter-spacing: 1.2px; margin: 18px 0 8px; padding-bottom: 5px; border-bottom: 1.5px solid var(--border); }
     .loc-name { font-size: 14px; font-weight: 600; }
     .loc-addr { font-size: 11px; color: var(--grey-3); margin-top: 2px; }
     .loc-map-btn { background: var(--red-dim); color: var(--red); border: none; border-radius: 6px; padding: 5px 10px; font-size: 11px; font-weight: 700; cursor: pointer; white-space: nowrap; }
@@ -421,9 +414,7 @@
       <input type="text" id="mNew" placeholder="Add member name…" />
       <button class="btn-add" onclick="addMember()">+ Add</button>
     </div>
-    <div style="margin-top:14px">
-      <button style="width:100%;padding:11px;border-radius:var(--r-sm);background:var(--grey-1);color:var(--grey-5);font-size:13px;font-weight:700;font-family:'Montserrat',sans-serif;border:none;cursor:pointer" onclick="openLocTracker()">📍 Member Location Tracker</button>
-    </div>
+
   </div>
   <button class="fab" onclick="submitAtt()">✓ Submit Attendance</button>
 </div>
@@ -442,57 +433,7 @@
   </div>
 </div>
 
-<!-- LOCATION TRACKER SCREEN -->
-<div id="sLocation" class="screen">
-  <div class="nav">
-    <div class="nav-left">
-      <div class="nav-brand">CCF</div>
-      <div class="nav-divider"></div>
-      <div class="nav-info">
-        <h2>Member Locator</h2>
-        <p id="locNavUnit">—</p>
-      </div>
-    </div>
-    <button class="btn-signout" onclick="show('sLeader')">← Back</button>
-  </div>
-  <div class="body">
-    <div class="card">
-      <span class="card-label">How it works</span>
-      <p style="font-size:13px;color:var(--grey-4);line-height:1.6">Tap <strong>Request Locations</strong>. Each member who opens the app on their device will be prompted to share their location. Results appear below in real time.</p>
-    </div>
-    <button class="loc-btn" onclick="requestLocations()">📍 Request Member Locations</button>
-    <div id="locShareBox" style="display:none; margin-bottom:14px">
-      <div class="card" style="background:var(--red);color:var(--white)">
-        <div style="font-size:13px;font-weight:700;margin-bottom:6px">Share this link with your members:</div>
-        <div id="locShareLink" style="font-size:12px;word-break:break-all;opacity:.9;margin-bottom:10px"></div>
-        <button class="loc-btn secondary" style="margin-bottom:0" onclick="copyLocLink()">Copy Link</button>
-      </div>
-    </div>
-    <div class="lhdr"><h4>Member Locations</h4><span id="locCount"></span></div>
-    <div id="locList"><div class="empty">No locations received yet.<br>Request locations to begin.</div></div>
-    <div style="margin-top:14px">
-      <button class="loc-btn secondary" onclick="clearLocations()">Clear All Locations</button>
-    </div>
-  </div>
-</div>
 
-<!-- MEMBER LOCATION SHARE PAGE -->
-<div id="sShareLoc" class="screen">
-  <div class="auth-bg" style="flex-direction:column;gap:16px">
-    <div class="auth-card" style="max-width:340px">
-      <div class="auth-card-top">
-        <div class="auth-wordmark">CCF</div>
-        <div class="auth-mantra">Light to Our Generation</div>
-      </div>
-      <div class="auth-card-body" style="text-align:center">
-        <div id="shareLocStatus">
-          <p style="font-size:14px;color:var(--grey-4);margin-bottom:18px">Your unit leader is requesting your location to locate members.<br><br>Tap below to share your current location.</p>
-          <button class="btn-red" id="shareLocBtn" onclick="doShareLocation()">📍 Share My Location</button>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
 
 <!-- Submit overlay -->
 <div id="oSubmit" class="overlay" style="display:none">
@@ -518,9 +459,11 @@
     <button class="btn-signout" onclick="doLogout()">Sign Out</button>
   </div>
   <div class="body">
-    <div class="tabs" id="adminTabs">
+    <div class="tabs" id="adminTabs" style="overflow-x:auto;flex-wrap:nowrap;gap:2px">
       <button class="tab on"  onclick="switchTab('Overview')">Overview</button>
-      <button class="tab"     onclick="switchTab('Halls')">Units</button>
+      <button class="tab"     onclick="switchTab('Halls')">Halls</button>
+      <button class="tab"     onclick="switchTab('Hostels')">Hostels</button>
+      <button class="tab"     onclick="switchTab('Departments')">Depts</button>
       <button class="tab"     onclick="switchTab('Reports')">Reports</button>
       <button class="tab"     onclick="switchTab('History')">History</button>
       <button class="tab"     onclick="switchTab('Setup')">Setup</button>
@@ -540,9 +483,19 @@
       <div id="oCards"></div>
     </div>
 
-    <!-- Units / Halls -->
+    <!-- Halls -->
     <div id="pHalls" class="panel">
-      <div id="hCards"></div>
+      <div id="hCardsHall"></div>
+    </div>
+
+    <!-- Hostels -->
+    <div id="pHostels" class="panel">
+      <div id="hCardsHostel"></div>
+    </div>
+
+    <!-- Departments -->
+    <div id="pDepartments" class="panel">
+      <div id="hCardsDepartment"></div>
     </div>
 
     <!-- ── REPORTS PANEL ── -->
@@ -883,7 +836,6 @@
     set('aNavName', CU.name);
     setLoading(false);
     await renderOverview();
-    renderHalls();
     renderHistory('all');
     renderSetup();
     // Populate Reports unit filter
@@ -926,24 +878,37 @@
         <div class="sum-mini"><div class="sum-val">${avg}%</div><div class="sum-lbl">Avg</div></div>
       `);
 
-      set('oCards', units.length ? units.map(u => {
-        const r  = latest[u];
-        if (!r) return `<div class="scard">
-          <div class="scard-hd"><div class="scard-title">${esc(u)}</div><span class="badge p">Pending</span></div>
-          <div style="font-size:12px;color:var(--grey-3)">No attendance submitted for this service</div>
-        </div>`;
-        const bc = r.pct>=75?'g':r.pct>=50?'a':'r';
-        return `<div class="scard">
-          <div class="scard-hd"><div class="scard-title">${esc(u)}</div><span class="badge ${bc}">${r.pct}%</span></div>
-          <div class="plabels"><span>${r.present} present</span><span>${r.total} total</span></div>
-          <div class="pbar"><div class="pfill ${bc}" style="width:${r.pct}%"></div></div>
-          <div style="font-size:11px;color:var(--grey-3);margin-top:6px">Submitted ${rel(r.date)} · by ${esc(r.by)}</div>
-        </div>`;
-      }).join('') : '<div class="empty">No halls registered yet.</div>');
+      // Group units by unitType
+      const userMap = {};
+      usersSnap.docs.forEach(d => { const ud = d.data(); userMap[ud.unit] = ud.unitType || 'Hall'; });
+      const typeOrder = ['Hall','Hostel','Department'];
+      const typeLabels = { Hall: '🏛 Halls', Hostel: '🏠 Hostels', Department: '📚 Departments' };
+      let oCardsHtml = '';
+      typeOrder.forEach(type => {
+        const typeUnits = units.filter(u => (userMap[u]||'Hall') === type);
+        if (!typeUnits.length) return;
+        oCardsHtml += `<div class="unit-type-hd">${typeLabels[type]}</div>`;
+        typeUnits.forEach(u => {
+          const r = latest[u];
+          if (!r) { oCardsHtml += `<div class="scard"><div class="scard-hd"><div class="scard-title">${esc(u)}</div><span class="badge p">Pending</span></div><div style="font-size:12px;color:var(--grey-3)">No attendance submitted for this service</div></div>`; return; }
+          const bc = r.pct>=75?'g':r.pct>=50?'a':'r';
+          oCardsHtml += `<div class="scard">
+            <div class="scard-hd"><div class="scard-title">${esc(u)}</div><span class="badge ${bc}">${r.pct}%</span></div>
+            <div class="plabels"><span>${r.present} present</span><span>${r.total} total</span></div>
+            <div class="pbar"><div class="pfill ${bc}" style="width:${r.pct}%"></div></div>
+            <div style="font-size:11px;color:var(--grey-3);margin-top:6px">Submitted ${rel(r.date)} · by ${esc(r.by)}</div>
+          </div>`;
+        });
+      });
+      set('oCards', oCardsHtml || '<div class="empty">No units registered yet.</div>');
     } catch(e) { console.error(e); toast('Failed to load overview', 'err'); }
   };
 
-  window.renderHalls = async function() {
+  window.renderUnitTab = async function(type) {
+    const containerId = 'hCards' + type;
+    const el = document.getElementById(containerId);
+    if (!el) return;
+    el.innerHTML = '<div class="empty">Loading…</div>';
     try {
       const [usersSnap, recordsSnap, membersSnap] = await Promise.all([
         getDocs(collection(db, 'users')),
@@ -953,11 +918,16 @@
       const users   = usersSnap.docs.map(d => d.data());
       const records = recordsSnap.docs.map(d => d.data());
       const members = membersSnap.docs.map(d => d.data());
-      const units   = [...new Set(users.map(u => u.unit))];
+      // Filter to only units of this type
+      const typeUnits = [...new Set(
+        users.filter(u => (u.unitType || 'Hall') === type).map(u => u.unit)
+      )].sort();
 
-      set('hCards', units.length ? units.map(u => {
-        const recs  = records.filter(r => r.unit === u).slice(0, 5);
-        const mCnt  = members.filter(m => m.unit === u).length;
+      if (!typeUnits.length) { el.innerHTML = `<div class="empty">No ${type.toLowerCase()}s registered yet.</div>`; return; }
+
+      el.innerHTML = typeUnits.map(u => {
+        const recs = records.filter(r => r.unit === u).slice(0, 5);
+        const mCnt = members.filter(m => m.unit === u).length;
         return `<div class="scard">
           <div class="scard-hd">
             <div class="scard-title">${esc(u)}</div>
@@ -969,8 +939,8 @@
               <div class="pbar"><div class="pfill ${r.pct>=75?'g':r.pct>=50?'a':'r'}" style="width:${r.pct}%"></div></div>
             </div>`).join('') : '<div style="font-size:12px;color:var(--grey-3)">No records yet</div>'}
         </div>`;
-      }).join('') : '<div class="empty">No units registered yet.</div>');
-    } catch(e) { console.error(e); }
+      }).join('');
+    } catch(e) { el.innerHTML = '<div class="empty">Failed to load.</div>'; console.error(e); }
   };
 
   let hFilter = 'all';
@@ -983,11 +953,18 @@
       ]);
       const users   = usersSnap.docs.map(d => d.data());
       const records = recordsSnap.docs.map(d => d.data());
-      const units   = [...new Set(users.map(u => u.unit))];
-
-      set('hChips', ['all', ...units].map(u =>
-        `<button class="chip ${hFilter===u?'on':''}" onclick="renderHistory('${u}')">${u==='all'?'All Units':esc(u)}</button>`
-      ).join(''));
+      // Build chips grouped by unit type
+      const typeOrder = ['Hall','Hostel','Department'];
+      const typeLabels = { Hall: '🏛', Hostel: '🏠', Department: '📚' };
+      let chipsHtml = `<button class="chip ${hFilter==='all'?'on':''}" onclick="renderHistory('all')">All Units</button>`;
+      typeOrder.forEach(type => {
+        const typeUnits = [...new Set(users.filter(u=>(u.unitType||'Hall')===type).map(u=>u.unit))].sort();
+        if (!typeUnits.length) return;
+        typeUnits.forEach(u => {
+          chipsHtml += `<button class="chip ${hFilter===u?'on':''}" onclick="renderHistory('${u}')">${typeLabels[type]} ${esc(u)}</button>`;
+        });
+      });
+      set('hChips', chipsHtml);
 
       const recs = hFilter === 'all' ? records : records.filter(r => r.unit === hFilter);
       set('hBody', recs.length ? recs.map(r=>`<tr>
@@ -1190,15 +1167,17 @@
   };
 
   window.switchTab = function(name) {
-    const all = ['Overview','Halls','Reports','History','Setup'];
+    const all = ['Overview','Halls','Hostels','Departments','Reports','History','Setup'];
     document.querySelectorAll('#adminTabs .tab').forEach((b,i) => b.classList.toggle('on', all[i]===name));
     document.querySelectorAll('.panel').forEach(p => p.classList.remove('on'));
     document.getElementById('p'+name).classList.add('on');
-    if (name==='Overview') renderOverview();
-    if (name==='Halls')    renderHalls();
-    if (name==='Reports')  renderReports();
-    if (name==='History')  renderHistory(hFilter);
-    if (name==='Setup')    renderSetup();
+    if (name==='Overview')    renderOverview();
+    if (name==='Halls')       renderUnitTab('Hall');
+    if (name==='Hostels')     renderUnitTab('Hostel');
+    if (name==='Departments') renderUnitTab('Department');
+    if (name==='Reports')     renderReports();
+    if (name==='History')     renderHistory(hFilter);
+    if (name==='Setup')       renderSetup();
   };
 
   document.addEventListener('keydown', e => {
@@ -1208,110 +1187,8 @@
     if (active?.id === 'sRegister') doRegister();
   });
 
-  // ── LOCATION TRACKER ──
-  let LOC_SESSION = null;
-
-  window.openLocTracker = function() {
-    document.getElementById('locNavUnit').textContent = CU.unit;
-    document.getElementById('locList').innerHTML = '<div class="empty">No locations received yet.<br>Request locations to begin.</div>';
-    document.getElementById('locCount').textContent = '';
-    document.getElementById('locShareBox').style.display = 'none';
-    LOC_SESSION = null;
-    show('sLocation');
-  };
-
-  window.requestLocations = async function() {
-    try {
-      const sessionRef = await addDoc(collection(db, 'locSessions'), {
-        unit: CU.unit, leader: CU.username,
-        createdAt: new Date().toISOString(), locations: {}
-      });
-      LOC_SESSION = sessionRef.id;
-      const shareUrl = `${location.href.split('?')[0]}?locSession=${LOC_SESSION}`;
-      document.getElementById('locShareLink').textContent = shareUrl;
-      document.getElementById('locShareBox').style.display = 'block';
-      toast('Session started — share the link!', 'ok');
-      clearInterval(window._locPoll);
-      window._locPoll = setInterval(pollLocations, 5000);
-      pollLocations();
-    } catch(e) { toast('Could not start session', 'err'); console.error(e); }
-  };
-
-  async function pollLocations() {
-    if (!LOC_SESSION) return;
-    try {
-      const snap = await getDoc(doc(db, 'locSessions', LOC_SESSION));
-      if (!snap.exists()) return;
-      const locs = snap.data().locations || {};
-      const entries = Object.entries(locs);
-      document.getElementById('locCount').textContent = entries.length + ' received';
-      if (!entries.length) return;
-      document.getElementById('locList').innerHTML = entries.map(([name, loc]) => {
-        const mapsUrl = `https://www.google.com/maps?q=${loc.lat},${loc.lng}`;
-        return `<div class="loc-row">
-          <div class="loc-dot ok"></div>
-          <div class="loc-info">
-            <div class="loc-name">${esc(name)}</div>
-            <div class="loc-addr">${loc.accuracy?'±'+Math.round(loc.accuracy)+'m · ':''}${rel(loc.ts)}</div>
-          </div>
-          <button class="loc-map-btn" onclick="window.open('${mapsUrl}','_blank')">Open Map</button>
-        </div>`;
-      }).join('');
-    } catch(e) { console.error(e); }
-  }
-
-  window.clearLocations = async function() {
-    if (!LOC_SESSION) { toast('No active session', 'err'); return; }
-    try {
-      await updateDoc(doc(db, 'locSessions', LOC_SESSION), { locations: {} });
-      document.getElementById('locList').innerHTML = '<div class="empty">Cleared. Waiting for members to reshare.</div>';
-      document.getElementById('locCount').textContent = '0 received';
-      toast('Locations cleared', 'ok');
-    } catch(e) { toast('Failed to clear', 'err'); }
-  };
-
-  window.copyLocLink = function() {
-    const txt = document.getElementById('locShareLink').textContent;
-    navigator.clipboard.writeText(txt).then(()=>toast('Link copied!','ok')).catch(()=>toast('Copy failed','err'));
-  };
-
-  window.doShareLocation = async function() {
-    const params = new URLSearchParams(location.search);
-    const sessionId = params.get('locSession');
-    if (!sessionId) { toast('Invalid session link', 'err'); return; }
-    const btn = document.getElementById('shareLocBtn');
-    btn.disabled = true; btn.textContent = 'Getting location…';
-    if (!navigator.geolocation) {
-      document.getElementById('shareLocStatus').innerHTML = '<p style="color:var(--red);font-size:14px">Geolocation not supported on this device.</p>';
-      return;
-    }
-    navigator.geolocation.getCurrentPosition(async pos => {
-      const name = prompt('Enter your name so your leader can identify you:');
-      if (!name || !name.trim()) { btn.disabled = false; btn.textContent = '📍 Share My Location'; return; }
-      try {
-        const sessionSnap = await getDoc(doc(db, 'locSessions', sessionId));
-        if (!sessionSnap.exists()) { document.getElementById('shareLocStatus').innerHTML = '<p style="color:var(--red)">Session expired or invalid.</p>'; return; }
-        const update = {};
-        update[`locations.${name.trim()}`] = { lat: pos.coords.latitude, lng: pos.coords.longitude, accuracy: pos.coords.accuracy, ts: new Date().toISOString() };
-        await updateDoc(doc(db, 'locSessions', sessionId), update);
-        document.getElementById('shareLocStatus').innerHTML = `
-          <div style="text-align:center;padding:10px 0">
-            <div style="font-size:40px;margin-bottom:12px">✅</div>
-            <p style="font-size:15px;font-weight:700;color:var(--green);margin-bottom:6px">Location shared!</p>
-            <p style="font-size:13px;color:var(--grey-4)">Your leader can now see your location. You can close this page.</p>
-          </div>`;
-      } catch(e) { document.getElementById('shareLocStatus').innerHTML = '<p style="color:var(--red)">Failed to share location. Check internet and try again.</p>'; console.error(e); }
-    }, err => {
-      btn.disabled = false; btn.textContent = '📍 Share My Location';
-      toast('Location access denied. Please allow location in your browser settings.', 'err');
-    }, { enableHighAccuracy: true, timeout: 10000 });
-  };
-
   // ── BOOT ──
   async function boot() {
-    // Check if this is a location share link
-    const params = new URLSearchParams(location.search);
-    if (params.get('locSession')) { setLoading(false); show('sShareLoc'); return; }
     try {
       const adminRef = doc(db, 'config', 'admin');
       const adminDoc = await getDoc(adminRef);
