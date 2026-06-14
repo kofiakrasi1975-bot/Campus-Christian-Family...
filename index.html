@@ -688,10 +688,10 @@
     btn.textContent = on ? 'Please wait…' : label;
   }
 
-  function persist() { sessionStorage.setItem('ccf_ses', JSON.stringify(CU)); }
+  function persist() { localStorage.setItem('ccf_ses', JSON.stringify(CU)); }
   function restore() {
     try {
-      const s = sessionStorage.getItem('ccf_ses');
+      const s = localStorage.getItem('ccf_ses');
       if (!s) { setLoading(false); show('sLogin'); return; }
       CU = JSON.parse(s);
       CU.role === 'admin' ? showAdmin() : showLeader();
@@ -748,7 +748,7 @@
 
   window.doLogout = function() {
     CU = null; NOTES = {};
-    sessionStorage.removeItem('ccf_ses');
+    localStorage.removeItem('ccf_ses');
     show('sLogin');
     document.getElementById('lUser').value = '';
     document.getElementById('lPass').value = '';
