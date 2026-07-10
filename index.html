@@ -1,0 +1,1143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>LTOG Attendance</title>
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="LTOG">
+<meta name="theme-color" content="#B01020">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' rx='40' fill='%23B01020'/%3E%3Ctext x='96' y='130' font-size='100' text-anchor='middle' fill='%23fff'%3E✝%3C/text%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' rx='40' fill='%23B01020'/%3E%3Ctext x='96' y='130' font-size='100' text-anchor='middle' fill='%23fff'%3E✝%3C/text%3E%3C/svg%3E">
+<script>
+const manifestData = {
+  name: "LTOG Attendance",
+  short_name: "LTOG",
+  description: "Light To Our Generation — Attendance System",
+  start_url: ".",
+  display: "standalone",
+  background_color: "#B01020",
+  theme_color: "#B01020",
+  orientation: "portrait",
+  icons: [
+    { src: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' rx='40' fill='%23B01020'/%3E%3Ctext x='96' y='130' font-size='100' text-anchor='middle' fill='white'%3E✝%3C/text%3E%3C/svg%3E", sizes: "192x192", type: "image/svg+xml" }
+  ]
+};
+const blob = new Blob([JSON.stringify(manifestData)], {type:'application/json'});
+document.write('<link rel="manifest" href="' + URL.createObjectURL(blob) + '">');
+</script>
+<style>
+:root {
+  --red:       #B01020;
+  --red-dark:  #8A0C18;
+  --red-light: #F9E8EA;
+  --red-mid:   #E8C0C4;
+  --white:     #FFFFFF;
+  --off-white: #FDF8F8;
+  --grey-1:    #F5F0F0;
+  --grey-2:    #E8E0E0;
+  --grey-3:    #B0A0A0;
+  --grey-4:    #6B5858;
+  --text:      #1A0808;
+  --green:     #1E7A3C;
+  --green-bg:  #E6F4EC;
+  --shadow:    0 2px 14px rgba(176,16,32,0.10);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--off-white); color: var(--text); min-height: 100vh; overscroll-behavior: none; padding-bottom: env(safe-area-inset-bottom,0px); }
+
+/* ── LOGIN ── */
+#login-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; padding: 32px 24px; background: var(--red); }
+.login-logo { width: 72px; height: 72px; border-radius: 20px; background: rgba(255,255,255,0.15); display: flex; align-items: center; justify-content: center; font-size: 36px; margin-bottom: 16px; }
+.login-title { font-size: 24px; font-weight: 800; color: #fff; letter-spacing: -0.5px; text-align: center; }
+.login-mantra { font-size: 12px; color: rgba(255,255,255,0.6); text-align: center; margin-top: 4px; letter-spacing: .1em; text-transform: uppercase; margin-bottom: 36px; }
+.login-card { background: #fff; border-radius: 20px; padding: 24px; width: 100%; max-width: 360px; box-shadow: 0 8px 32px rgba(0,0,0,0.18); }
+.login-card h2 { font-size: 15px; font-weight: 700; color: var(--red); margin-bottom: 16px; text-align: center; }
+.role-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+.role-btn { padding: 14px 8px; border-radius: 12px; border: 2px solid var(--grey-2); background: var(--grey-1); color: var(--grey-4); font-size: 12px; font-weight: 600; cursor: pointer; text-align: center; transition: all .2s; line-height: 1.4; }
+.role-btn.selected { border-color: var(--red); background: var(--red-light); color: var(--red); }
+.role-btn .role-icon { font-size: 20px; display: block; margin-bottom: 4px; }
+.pin-label { font-size: 12px; font-weight: 500; color: var(--grey-4); margin-bottom: 8px; }
+.pin-row { display: flex; gap: 10px; justify-content: center; margin-bottom: 20px; }
+.pin-dot { width: 48px; height: 56px; border-radius: 12px; border: 2px solid var(--grey-2); background: var(--grey-1); font-size: 24px; font-weight: 700; text-align: center; color: var(--red); display: flex; align-items: center; justify-content: center; transition: all .15s; }
+.pin-dot.filled { border-color: var(--red); background: var(--red-light); }
+.numpad { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin-bottom: 16px; }
+.num-btn { padding: 16px; border-radius: 12px; border: none; background: var(--grey-1); color: var(--text); font-size: 20px; font-weight: 600; cursor: pointer; transition: background .1s; font-family: inherit; }
+.num-btn:active { background: var(--red-light); }
+.num-btn.del { font-size: 16px; color: var(--grey-4); }
+.login-submit { width: 100%; padding: 14px; border-radius: 12px; border: none; background: var(--red); color: #fff; font-size: 16px; font-weight: 700; cursor: pointer; font-family: inherit; transition: opacity .15s; }
+.login-submit:active { opacity: .8; }
+.login-error { color: var(--red); font-size: 13px; text-align: center; margin-top: 10px; min-height: 18px; }
+.login-group-field { margin-bottom: 16px; }
+.login-group-field label { font-size: 12px; font-weight: 500; color: var(--grey-4); display: block; margin-bottom: 6px; }
+
+/* ── APP SHELL ── */
+#app { display: none; }
+.header { background: var(--red); position: sticky; top: 0; z-index: 100; padding-top: env(safe-area-inset-top,0px); }
+.header-top { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px 10px; }
+.header-left { display: flex; align-items: center; gap: 10px; }
+.header-logo { width: 32px; height: 32px; border-radius: 8px; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; font-size: 16px; }
+.header-title { font-size: 16px; font-weight: 800; color: #fff; letter-spacing: -0.3px; }
+.header-sub { font-size: 10px; color: rgba(255,255,255,0.55); margin-top: 1px; text-transform: uppercase; letter-spacing: .06em; }
+.header-right { display: flex; align-items: center; gap: 10px; }
+.logout-btn { background: rgba(255,255,255,0.15); border: none; color: #fff; font-size: 12px; font-weight: 600; padding: 6px 12px; border-radius: 8px; cursor: pointer; font-family: inherit; }
+.tabs { display: flex; border-top: 1px solid rgba(255,255,255,0.15); }
+.tab { flex: 1; padding: 10px 4px; font-size: 11px; font-weight: 600; text-align: center; cursor: pointer; border: none; background: none; color: rgba(255,255,255,0.45); border-bottom: 2px solid transparent; transition: all .2s; letter-spacing: .02em; }
+.tab.active { color: #fff; border-bottom-color: #fff; }
+
+/* ── PAGES ── */
+.page { display: none; padding: 16px; max-width: 560px; margin: 0 auto; padding-bottom: calc(24px + env(safe-area-inset-bottom,0px)); }
+.page.active { display: block; }
+
+/* ── CARDS ── */
+.card { background: var(--white); border-radius: 14px; padding: 16px; margin-bottom: 12px; box-shadow: var(--shadow); }
+.card-title { font-size: 11px; font-weight: 700; color: var(--grey-3); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 12px; }
+
+/* ── FORM ── */
+.field { margin-bottom: 10px; }
+.field label { font-size: 12px; font-weight: 500; color: var(--grey-4); display: block; margin-bottom: 4px; }
+input[type=text], input[type=date], input[type=search], input[type=password], select, textarea {
+  width: 100%; padding: 11px 14px; border: 1.5px solid var(--grey-2); border-radius: 10px;
+  font-size: 16px; background: var(--white); color: var(--text);
+  -webkit-appearance: none; appearance: none; transition: border-color .2s; font-family: inherit;
+}
+input:focus, select:focus, textarea:focus { outline: none; border-color: var(--red); }
+textarea { height: 90px; resize: vertical; }
+
+/* ── BUTTONS ── */
+.btn { width: 100%; padding: 13px; border-radius: 10px; border: none; font-size: 15px; font-weight: 600; cursor: pointer; transition: opacity .15s; font-family: inherit; }
+.btn:active { opacity: .75; }
+.btn-primary { background: var(--red); color: #fff; }
+.btn-outline { background: var(--red-light); color: var(--red); border: 1.5px solid var(--red-mid); }
+.btn-green { background: #25D366; color: #fff; }
+.btn-ghost { background: var(--grey-1); color: var(--grey-4); font-size: 13px; padding: 9px; }
+.btn + .btn { margin-top: 8px; }
+.btn-row { display: flex; gap: 8px; }
+.btn-row .btn { flex: 1; }
+
+/* ── METRICS ── */
+.metrics { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; margin-bottom: 14px; }
+.metric { background: var(--red); border-radius: 12px; padding: 12px 8px; text-align: center; }
+.metric-val { font-size: 26px; font-weight: 800; color: #fff; line-height: 1; }
+.metric-label { font-size: 10px; color: rgba(255,255,255,0.6); margin-top: 3px; text-transform: uppercase; letter-spacing: .05em; }
+
+/* ── MEMBERS ── */
+.unit-label { font-size: 11px; font-weight: 700; color: var(--red); text-transform: uppercase; letter-spacing: .08em; padding: 8px 0 6px; border-bottom: 1.5px solid var(--red); margin-bottom: 4px; display: flex; justify-content: space-between; }
+.member-row { display: flex; align-items: center; justify-content: space-between; padding: 9px 0; border-bottom: 1px solid var(--grey-1); }
+.member-row:last-child { border-bottom: none; }
+.avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--red-light); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: var(--red); flex-shrink: 0; }
+.del-btn { background: none; border: none; color: var(--grey-3); font-size: 22px; cursor: pointer; padding: 4px 8px; line-height: 1; }
+
+/* ── ATTENDANCE ── */
+.att-row { display: flex; align-items: center; justify-content: space-between; padding: 9px 0; border-bottom: 1px solid var(--grey-1); }
+.att-row:last-child { border-bottom: none; }
+.toggle { padding: 7px 14px; border-radius: 20px; border: 1.5px solid var(--grey-2); font-size: 13px; font-weight: 600; cursor: pointer; background: var(--grey-1); color: var(--grey-4); transition: all .15s; font-family: inherit; }
+.toggle.present { background: var(--green-bg); color: var(--green); border-color: var(--green); }
+
+/* ── HISTORY ── */
+.hist-row { display: flex; align-items: center; justify-content: space-between; padding: 11px 0; border-bottom: 1px solid var(--grey-1); gap: 8px; }
+.hist-row:last-child { border-bottom: none; }
+.badge { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; }
+.badge-thu { background: #FFF0E0; color: #A05000; }
+.badge-sun { background: #E0EEFF; color: #1040A0; }
+.badge-ok  { background: var(--green-bg); color: var(--green); }
+.badge-low { background: var(--red-light); color: var(--red); }
+.badge-role { background: var(--red-light); color: var(--red); font-size: 10px; padding: 2px 8px; border-radius: 8px; }
+
+/* ── ADMIN LIVE VIEW ── */
+.group-card { background: var(--white); border-radius: 14px; padding: 16px; margin-bottom: 12px; box-shadow: var(--shadow); border-left: 4px solid var(--red); }
+.group-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.group-name { font-size: 15px; font-weight: 700; color: var(--red); }
+.group-type { font-size: 10px; color: var(--grey-3); text-transform: uppercase; letter-spacing: .07em; margin-top: 2px; }
+.group-stat { text-align: right; }
+.group-stat .big { font-size: 22px; font-weight: 800; color: var(--red); line-height: 1; }
+.group-stat .small { font-size: 11px; color: var(--grey-3); }
+.progress-bar { height: 6px; background: var(--grey-1); border-radius: 3px; overflow: hidden; }
+.progress-fill { height: 100%; background: var(--red); border-radius: 3px; transition: width .4s; }
+.progress-fill.good { background: var(--green); }
+
+/* ── MISC ── */
+.empty { text-align: center; color: var(--grey-3); padding: 32px 0; font-size: 14px; }
+.empty-icon { font-size: 32px; margin-bottom: 8px; }
+.notice { background: var(--red-light); border-left: 3px solid var(--red); border-radius: 8px; padding: 10px 14px; font-size: 13px; color: var(--red-dark); margin-bottom: 12px; line-height: 1.5; }
+.search-wrap { position: relative; margin-bottom: 12px; }
+.search-wrap input { padding-left: 38px; }
+.search-icon { position: absolute; left: 13px; top: 50%; transform: translateY(-50%); color: var(--grey-3); font-size: 15px; pointer-events: none; }
+.filter-row { display: flex; gap: 8px; margin-bottom: 12px; align-items: center; }
+.filter-row select { flex: 1; }
+.filter-row .btn { width: auto; padding: 9px 16px; flex-shrink: 0; font-size: 13px; }
+.divider { height: 1px; background: var(--grey-1); margin: 12px 0; }
+#toast { position: fixed; bottom: calc(24px + env(safe-area-inset-bottom,0px)); left: 50%; transform: translateX(-50%); background: var(--text); color: #fff; padding: 10px 20px; border-radius: 20px; font-size: 13px; font-weight: 500; opacity: 0; transition: opacity .25s; pointer-events: none; z-index: 999; white-space: nowrap; box-shadow: 0 4px 16px rgba(0,0,0,0.25); }
+#toast.show { opacity: 1; }
+#toast.err { background: var(--red); }
+#toast.ok { background: var(--green); }
+
+/* iOS install tip */
+#ios-tip { display: none; position: fixed; bottom: 0; left: 0; right: 0; background: var(--red-dark); color: #fff; padding: 16px 18px calc(16px + env(safe-area-inset-bottom,0px)); z-index: 200; text-align: center; }
+#ios-tip.show { display: block; }
+#ios-tip p { font-size: 13px; line-height: 1.6; }
+#ios-tip button { margin-top: 10px; padding: 8px 20px; border-radius: 8px; background: rgba(255,255,255,0.15); color: #fff; border: none; font-size: 13px; cursor: pointer; }
+
+/* Change PIN modal */
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 300; align-items: center; justify-content: center; padding: 24px; }
+.modal-overlay.show { display: flex; }
+.modal { background: #fff; border-radius: 20px; padding: 24px; width: 100%; max-width: 340px; }
+.modal h3 { font-size: 17px; font-weight: 700; color: var(--red); margin-bottom: 16px; }
+</style>
+</head>
+<body>
+
+<div id="toast"></div>
+
+<!-- iOS Install Tip -->
+<div id="ios-tip">
+  <p>To install: tap the <strong>Share</strong> button in Safari, then <strong>"Add to Home Screen"</strong></p>
+  <button onclick="document.getElementById('ios-tip').classList.remove('show');localStorage.setItem('ios_tip_dismissed','1')">Got it</button>
+</div>
+
+<!-- Change PIN Modal -->
+<div class="modal-overlay" id="pin-modal">
+  <div class="modal">
+    <h3>Change Your PIN</h3>
+    <div class="field"><label>Current PIN</label><input type="password" id="old-pin" placeholder="Enter current PIN" maxlength="4"></div>
+    <div class="field"><label>New PIN (4 digits)</label><input type="password" id="new-pin" placeholder="Enter new PIN" maxlength="4"></div>
+    <div class="field"><label>Confirm new PIN</label><input type="password" id="confirm-pin" placeholder="Confirm new PIN" maxlength="4"></div>
+    <button class="btn btn-primary" onclick="changePin()">Save PIN</button>
+    <button class="btn btn-ghost" onclick="closeModal()" style="margin-top:8px">Cancel</button>
+  </div>
+</div>
+
+<!-- ══ LOGIN SCREEN ══ -->
+<div id="login-screen">
+  <div class="login-logo">✝</div>
+  <div class="login-title">CCF Attendance</div>
+  <div class="login-mantra">Light To Our Generation</div>
+
+  <div class="login-card">
+    <h2>Sign In</h2>
+
+    <!-- Role selection -->
+    <div class="role-grid" id="role-grid">
+      <button class="role-btn" onclick="selectRole('admin')" id="role-admin">
+        <span class="role-icon">🛡️</span>Admin
+      </button>
+      <button class="role-btn" onclick="selectRole('hall')" id="role-hall">
+        <span class="role-icon">🏛️</span>Hall Leader
+      </button>
+      <button class="role-btn" onclick="selectRole('hostel')" id="role-hostel">
+        <span class="role-icon">🏠</span>Hostel Leader
+      </button>
+      <button class="role-btn" onclick="selectRole('department')" id="role-department">
+        <span class="role-icon">📚</span>Dept. Leader
+      </button>
+
+    </div>
+
+    <!-- Group name (for leaders) -->
+    <div id="group-name-field" style="display:none" class="login-group-field">
+      <label id="group-name-label">Group name</label>
+      <select id="login-group-select" style="display:none">
+        <option value="">— Select Hall —</option>
+        <option value="Unity Hall">Unity Hall</option>
+        <option value="Independence Hall">Independence Hall</option>
+        <option value="Queens Hall">Queens Hall</option>
+        <option value="Africa Hall">Africa Hall</option>
+        <option value="Republic Hall">Republic Hall</option>
+        <option value="University Hall">University Hall</option>
+      </select>
+      <input type="text" id="login-group-text" placeholder="Type your group name" style="display:none" autocomplete="off">
+    </div>
+
+    <!-- PIN entry -->
+    <div class="pin-label" id="pin-label">Enter PIN</div>
+    <div class="pin-row" id="pin-display">
+      <div class="pin-dot" id="pd0">·</div>
+      <div class="pin-dot" id="pd1">·</div>
+      <div class="pin-dot" id="pd2">·</div>
+      <div class="pin-dot" id="pd3">·</div>
+    </div>
+
+    <div class="numpad">
+      <button class="num-btn" onclick="numPress('1')">1</button>
+      <button class="num-btn" onclick="numPress('2')">2</button>
+      <button class="num-btn" onclick="numPress('3')">3</button>
+      <button class="num-btn" onclick="numPress('4')">4</button>
+      <button class="num-btn" onclick="numPress('5')">5</button>
+      <button class="num-btn" onclick="numPress('6')">6</button>
+      <button class="num-btn" onclick="numPress('7')">7</button>
+      <button class="num-btn" onclick="numPress('8')">8</button>
+      <button class="num-btn" onclick="numPress('9')">9</button>
+      <button class="num-btn" onclick="numPress('')" style="visibility:hidden"></button>
+      <button class="num-btn" onclick="numPress('0')">0</button>
+      <button class="num-btn del" onclick="numDel()">⌫</button>
+    </div>
+
+    <button class="login-submit" onclick="doLogin()">Sign In</button>
+    <div class="login-error" id="login-error"></div>
+  </div>
+</div>
+
+<!-- ══ APP SHELL ══ -->
+<div id="app">
+  <div class="header">
+    <div class="header-top">
+      <div class="header-left">
+        <div class="header-logo">✝</div>
+        <div>
+          <div class="header-title">CCF Attendance</div>
+          <div class="header-sub" id="header-sub">Light To Our Generation</div>
+        </div>
+      </div>
+      <div class="header-right">
+        <span class="badge-role" id="role-badge"></span>
+        <button class="logout-btn" onclick="doLogout()">Sign Out</button>
+      </div>
+    </div>
+    <div class="tabs" id="tab-bar"></div>
+  </div>
+
+  <!-- ADMIN: Members -->
+  <div id="page-members" class="page">
+    <div class="search-wrap">
+      <span class="search-icon">🔍</span>
+      <input type="search" id="member-search" placeholder="Search members…" oninput="renderMembers()">
+    </div>
+    <div class="card">
+      <div class="card-title">Add member</div>
+      <div class="field"><label>Full name</label><input type="text" id="m-name" placeholder="e.g. Kofi Mensah" autocomplete="off"></div>
+      <div class="field"><label>Group type</label>
+        <select id="m-group-type" onchange="updateGroupTypeLabel()">
+          <option value="Hall">Hall</option>
+          <option value="Hostel">Hostel</option>
+          <option value="Department">Department</option>
+        </select>
+      </div>
+      <div class="field" id="m-hall-field">
+        <label>Hall name</label>
+        <select id="m-hall-select">
+          <option value="Unity Hall">Unity Hall</option>
+          <option value="Independence Hall">Independence Hall</option>
+          <option value="Queens Hall">Queens Hall</option>
+          <option value="Africa Hall">Africa Hall</option>
+          <option value="Republic Hall">Republic Hall</option>
+          <option value="University Hall">University Hall</option>
+        </select>
+      </div>
+      <div class="field" id="m-unit-field" style="display:none">
+        <label id="m-group-label">Group name</label>
+        <input type="text" id="m-unit" placeholder="e.g. Adehye Hostel" autocomplete="off">
+      </div>
+      <button class="btn btn-primary" onclick="addMember()">Add Member</button>
+    </div>
+    <div class="card">
+      <div class="card-title">Bulk import</div>
+      <div class="notice">One per line · <strong>Name, GroupType, GroupName</strong><br>e.g. Kofi Mensah, Hall, Unity Hall</div>
+      <div class="field"><textarea id="bulk-input" placeholder="Kofi Mensah, Hall, Unity Hall&#10;Ama Asante, Hostel, Adehye Hostel&#10;Yaw Darko, Department, Sciences"></textarea></div>
+      <button class="btn btn-outline" onclick="bulkImport()">Import All</button>
+    </div>
+    <div id="member-list"></div>
+  </div>
+
+  <!-- ADMIN: Live Overview -->
+  <div id="page-overview" class="page">
+    <div class="filter-row">
+      <select id="ov-service" style="flex:1">
+        <option value="Thursday">Thursday Service</option>
+        <option value="Sunday">Sunday Service</option>
+      </select>
+      <input type="date" id="ov-date" style="flex:1;padding:9px 14px;border:1.5px solid var(--grey-2);border-radius:10px;font-size:14px;font-family:inherit">
+      <button class="btn btn-primary" onclick="renderOverview()" style="width:auto;padding:9px 16px;flex-shrink:0;font-size:13px">Refresh</button>
+    </div>
+    <div id="overview-out"></div>
+  </div>
+
+  <!-- MARK ATTENDANCE (leaders + admin) -->
+  <div id="page-mark" class="page">
+    <div class="card">
+      <div class="card-title">Session</div>
+      <div class="field"><label>Date</label><input type="date" id="att-date"></div>
+      <div class="field"><label>Service</label>
+        <select id="att-service">
+          <option value="Thursday">Thursday Service</option>
+          <option value="Sunday">Sunday Service</option>
+        </select>
+      </div>
+      <div id="att-group-field" style="display:none" class="field"><label id="att-group-label">Group</label>
+        <select id="att-group-select"></select>
+      </div>
+      <button class="btn btn-primary" onclick="loadAtt()">Load Session</button>
+      <button class="btn btn-outline" onclick="saveAtt()" style="margin-top:8px">💾 Save Attendance</button>
+      <button class="btn btn-green" onclick="submitWhatsApp()" style="margin-top:8px">📲 Submit via WhatsApp</button>
+    </div>
+    <div id="att-metrics" style="display:none">
+      <div class="metrics">
+        <div class="metric"><div class="metric-val" id="m-p">0</div><div class="metric-label">Present</div></div>
+        <div class="metric"><div class="metric-val" id="m-a">0</div><div class="metric-label">Absent</div></div>
+        <div class="metric"><div class="metric-val" id="m-r">—</div><div class="metric-label">Rate</div></div>
+      </div>
+      <div class="btn-row" style="margin-bottom:12px">
+        <button class="btn btn-ghost" onclick="markAll(true)">✓ All Present</button>
+        <button class="btn btn-ghost" onclick="markAll(false)">✗ Clear All</button>
+      </div>
+    </div>
+    <div class="search-wrap" id="att-search-wrap" style="display:none">
+      <span class="search-icon">🔍</span>
+      <input type="search" id="att-search" placeholder="Search member…" oninput="renderAttList()">
+    </div>
+    <div id="att-list"></div>
+  </div>
+
+  <!-- HISTORY (leaders see own group; admin sees all) -->
+  <div id="page-history" class="page">
+    <div class="filter-row">
+      <select id="hist-filter" onchange="renderHistory()">
+        <option value="">All services</option>
+        <option value="Thursday">Thursday</option>
+        <option value="Sunday">Sunday</option>
+      </select>
+    </div>
+    <div class="card" id="history-list"></div>
+  </div>
+
+  <!-- ADMIN REPORTS -->
+  <div id="page-report" class="page">
+    <div class="filter-row">
+      <select id="rep-filter">
+        <option value="">All services</option>
+        <option value="Thursday">Thursday</option>
+        <option value="Sunday">Sunday</option>
+      </select>
+      <button class="btn btn-primary" onclick="renderReport()" style="width:auto;padding:9px 16px;flex-shrink:0;font-size:13px">Generate</button>
+      <button class="btn btn-ghost" onclick="exportCSV()" style="width:auto;padding:9px 16px;flex-shrink:0;font-size:13px">CSV</button>
+    </div>
+    <div id="report-out"></div>
+  </div>
+
+  <!-- SETTINGS (PIN change) -->
+  <div id="page-settings" class="page">
+    <div class="card">
+      <div class="card-title">Account</div>
+      <div id="settings-role-info" style="font-size:14px;color:var(--grey-4);margin-bottom:16px;line-height:1.6"></div>
+      <button class="btn btn-outline" onclick="openModal()">🔑 Change My PIN</button>
+    </div>
+    <div id="admin-settings" style="display:none">
+      <div class="card">
+        <div class="card-title">Leader groups</div>
+        <div style="font-size:13px;color:var(--grey-4);margin-bottom:12px">All groups that have been created by adding members. Leaders select their group at login.</div>
+        <div id="group-list-settings"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════
+// CONSTANTS & STORAGE
+// ══════════════════════════════════════════════════════
+const ADMIN_PHONE   = '233555374223';
+const ADMIN_PIN_KEY = 'ccf_admin_pin';
+const LEADER_PIN_KEY= 'ccf_leader_pin';
+const DEFAULT_ADMIN_PIN  = '9999';
+const DEFAULT_LEADER_PIN = '1234';
+
+function load(k,d){ try{ return JSON.parse(localStorage.getItem(k))||d; }catch(e){ return d; } }
+function save(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){ toast('Storage full',true); } }
+
+let members  = load('ccf_members',  []);
+let sessions = load('ccf_sessions', []);
+let adminPin  = localStorage.getItem(ADMIN_PIN_KEY)  || DEFAULT_ADMIN_PIN;
+let leaderPin = localStorage.getItem(LEADER_PIN_KEY) || DEFAULT_LEADER_PIN;
+
+// Session state
+let currentUser = null; // { role, groupType, groupName }
+let cur = {};           // active attendance session
+
+// ══════════════════════════════════════════════════════
+// HELPERS
+// ══════════════════════════════════════════════════════
+function initials(n){ return n.trim().split(/\s+/).map(w=>w[0]).join('').toUpperCase().slice(0,2); }
+function pct(p,t){ return t?Math.round(p/t*100):0; }
+function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2); }
+function escH(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+let toastTimer;
+function toast(msg,type){
+  const t=document.getElementById('toast');
+  t.textContent=msg;
+  t.className='show'+(type==='err'?' err':type==='ok'?' ok':'');
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>t.className='',2400);
+}
+
+function groupTypes(){ return ['Hall','Hostel','Department']; }
+
+function allGroups(){
+  // Returns array of {type, name} sorted
+  const seen=new Set();
+  const result=[];
+  members.forEach(m=>{
+    const key=m.groupType+'::'+m.groupName;
+    if(!seen.has(key)){ seen.add(key); result.push({type:m.groupType,name:m.groupName}); }
+  });
+  return result.sort((a,b)=>a.type.localeCompare(b.type)||a.name.localeCompare(b.name));
+}
+
+function groupsOfType(type){
+  return [...new Set(members.filter(m=>m.groupType===type).map(m=>m.groupName))].sort();
+}
+
+function membersOfGroup(type,name){
+  return members.filter(m=>m.groupType===type&&m.groupName===name);
+}
+
+// ══════════════════════════════════════════════════════
+// LOGIN
+// ══════════════════════════════════════════════════════
+let selectedRole='', pinBuffer='';
+
+function selectRole(r){
+  selectedRole=r;
+  pinBuffer='';
+  updatePinDisplay();
+  document.getElementById('login-error').textContent='';
+  document.querySelectorAll('.role-btn').forEach(b=>b.classList.remove('selected'));
+  document.getElementById('role-'+r).classList.add('selected');
+
+  const gf=document.getElementById('group-name-field');
+  const gs=document.getElementById('login-group-select');
+  const gl=document.getElementById('group-name-label');
+
+  if(r==='admin'){
+    gf.style.display='none';
+  } else {
+    gf.style.display='block';
+    const typeMap={hall:'Hall',hostel:'Hostel',department:'Department'};
+    const type=typeMap[r];
+    gl.textContent=type+' name';
+    const gt=document.getElementById('login-group-text');
+    if(type==='Hall'){
+      gs.style.display='';
+      gt.style.display='none';
+    } else {
+      gs.style.display='none';
+      gt.style.display='';
+      gt.placeholder='Type your '+type.toLowerCase()+' name';
+      gt.value='';
+    }
+  }
+}
+
+function numPress(d){
+  if(pinBuffer.length>=4) return;
+  pinBuffer+=d;
+  updatePinDisplay();
+}
+function numDel(){
+  pinBuffer=pinBuffer.slice(0,-1);
+  updatePinDisplay();
+}
+function updatePinDisplay(){
+  for(let i=0;i<4;i++){
+    const dot=document.getElementById('pd'+i);
+    dot.textContent=pinBuffer[i]?'●':'·';
+    dot.classList.toggle('filled',!!pinBuffer[i]);
+  }
+}
+
+function doLogin(){
+  const err=document.getElementById('login-error');
+  if(!selectedRole){ err.textContent='Please select a role.'; return; }
+  if(pinBuffer.length<4){ err.textContent='Enter your 4-digit PIN.'; return; }
+
+  if(selectedRole==='admin'){
+    if(pinBuffer!==adminPin){ err.textContent='Incorrect PIN.'; pinBuffer=''; updatePinDisplay(); return; }
+    currentUser={role:'admin',groupType:null,groupName:null};
+  } else {
+    if(pinBuffer!==leaderPin){ err.textContent='Incorrect PIN.'; pinBuffer=''; updatePinDisplay(); return; }
+    const typeMap={hall:'Hall',hostel:'Hostel',department:'Department'};
+    const lType=typeMap[selectedRole];
+    let lGroup='';
+    if(lType==='Hall'){
+      lGroup=document.getElementById('login-group-select').value;
+      if(!lGroup){ err.textContent='Please select your Hall.'; return; }
+    } else {
+      lGroup=document.getElementById('login-group-text').value.trim();
+      if(!lGroup){ err.textContent='Please enter your '+lType+' name.'; return; }
+    }
+    currentUser={role:'leader',groupType:lType,groupName:lGroup,leaderType:selectedRole};
+  }
+
+  pinBuffer=''; updatePinDisplay(); err.textContent='';
+  launchApp();
+}
+
+function doLogout(){
+  currentUser=null; cur={};
+  document.getElementById('login-screen').style.display='flex';
+  document.getElementById('app').style.display='none';
+  selectedRole='';
+  document.querySelectorAll('.role-btn').forEach(b=>b.classList.remove('selected'));
+}
+
+// ══════════════════════════════════════════════════════
+// APP SHELL
+// ══════════════════════════════════════════════════════
+function launchApp(){
+  document.getElementById('login-screen').style.display='none';
+  document.getElementById('app').style.display='block';
+
+  const isAdmin=currentUser.role==='admin';
+  const rb=document.getElementById('role-badge');
+  const hs=document.getElementById('header-sub');
+
+  if(isAdmin){
+    rb.textContent='Admin';
+    hs.textContent='Light To Our Generation';
+    buildTabs([
+      {id:'members',label:'Members'},
+      {id:'overview',label:'Live View'},
+      {id:'mark',label:'Attendance'},
+      {id:'history',label:'History'},
+      {id:'report',label:'Reports'},
+      {id:'settings',label:'Settings'}
+    ]);
+    // Show admin att group field
+    document.getElementById('att-group-field').style.display='block';
+    document.getElementById('admin-settings').style.display='block';
+    populateAttGroupSelect();
+    populateSettingsGroupList();
+    renderOverviewDate();
+    nav('overview');
+  } else {
+    const typeLabels={hall:'Hall',hostel:'Hostel',department:'Department'};
+    rb.textContent=typeLabels[currentUser.leaderType]+' Leader';
+    hs.textContent=currentUser.groupName;
+    buildTabs([
+      {id:'mark',label:'Attendance'},
+      {id:'history',label:'History'},
+      {id:'settings',label:'Settings'}
+    ]);
+    document.getElementById('att-group-field').style.display='none';
+    nav('mark');
+  }
+
+  // Settings info
+  const si=document.getElementById('settings-role-info');
+  if(isAdmin){
+    si.innerHTML='Signed in as <strong>Admin</strong><br>Default leader PIN: <strong>'+leaderPin+'</strong>';
+  } else {
+    si.innerHTML='Signed in as <strong>'+currentUser.groupType+' Leader</strong><br>Group: <strong>'+escH(currentUser.groupName)+'</strong>';
+  }
+
+  document.getElementById('att-date').value=new Date().toISOString().split('T')[0];
+  updateGroupTypeLabel();
+  renderMembers();
+}
+
+function buildTabs(tabs){
+  const bar=document.getElementById('tab-bar');
+  bar.innerHTML=tabs.map(t=>`<button class="tab" id="tab-${t.id}" onclick="nav('${t.id}')">${t.label}</button>`).join('');
+}
+
+function nav(p){
+  document.querySelectorAll('.page').forEach(el=>el.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(el=>el.classList.remove('active'));
+  const pg=document.getElementById('page-'+p);
+  if(pg) pg.classList.add('active');
+  const tb=document.getElementById('tab-'+p);
+  if(tb) tb.classList.add('active');
+  if(p==='history') renderHistory();
+  if(p==='report')  renderReport();
+  if(p==='overview') renderOverview();
+}
+
+// ══════════════════════════════════════════════════════
+// MEMBERS (Admin only)
+// ══════════════════════════════════════════════════════
+function updateGroupTypeLabel(){
+  const v=document.getElementById('m-group-type').value;
+  const hallField=document.getElementById('m-hall-field');
+  const unitField=document.getElementById('m-unit-field');
+  if(v==='Hall'){
+    hallField.style.display='';
+    unitField.style.display='none';
+  } else {
+    hallField.style.display='none';
+    unitField.style.display='';
+    document.getElementById('m-group-label').textContent=v+' name';
+    document.getElementById('m-unit').placeholder=v==='Hostel'?'e.g. Adehye Hostel':'e.g. Sciences';
+  }
+}
+
+function addMember(name,groupType,groupName,silent){
+  name=(name||document.getElementById('m-name').value).trim();
+  groupType=(groupType||document.getElementById('m-group-type').value).trim();
+  if(!groupName){
+    if(groupType==='Hall'){
+      groupName=document.getElementById('m-hall-select').value;
+    } else {
+      groupName=document.getElementById('m-unit').value;
+    }
+  }
+  groupName=groupName.trim();
+  if(!name||!groupType||!groupName){ if(!silent) toast('Fill in all fields','err'); return false; }
+  if(members.find(m=>m.name.toLowerCase()===name.toLowerCase())){ if(!silent) toast(name+' already exists','err'); return false; }
+  members.push({id:uid(),name,groupType,groupName});
+  save('ccf_members',members);
+  if(!silent){
+    document.getElementById('m-name').value='';
+    document.getElementById('m-unit').value='';
+    renderMembers();
+    populateAttGroupSelect();
+    populateSettingsGroupList();
+    toast(name+' added ✓','ok');
+  }
+  return true;
+}
+
+function bulkImport(){
+  const raw=document.getElementById('bulk-input').value.trim();
+  if(!raw){ toast('Paste some names first','err'); return; }
+  const lines=raw.split('\n').map(l=>l.trim()).filter(Boolean);
+  let added=0,skipped=0;
+  const toAdd=[];
+  const validTypes=['Hall','Hostel','Department'];
+  lines.forEach(line=>{
+    const parts=line.split(',');
+    if(parts.length<3){ skipped++; return; }
+    const n=parts[0].trim();
+    const gt=parts[1].trim();
+    const gn=parts.slice(2).join(',').trim();
+    if(!n||!gt||!gn){ skipped++; return; }
+    const normalType=validTypes.find(t=>t.toLowerCase()===gt.toLowerCase());
+    if(!normalType){ skipped++; return; }
+    if(members.find(m=>m.name.toLowerCase()===n.toLowerCase())||toAdd.find(m=>m.name.toLowerCase()===n.toLowerCase())){ skipped++; return; }
+    toAdd.push({id:uid(),name:n,groupType:normalType,groupName:gn});
+    added++;
+  });
+  members=[...members,...toAdd];
+  save('ccf_members',members);
+  renderMembers();
+  populateAttGroupSelect();
+  populateSettingsGroupList();
+  document.getElementById('bulk-input').value='';
+  toast(added+' added, '+skipped+' skipped');
+}
+
+function deleteMember(id){
+  if(!confirm('Remove this member?')) return;
+  members=members.filter(m=>m.id!==id);
+  save('ccf_members',members);
+  renderMembers();
+  toast('Member removed');
+}
+
+function renderMembers(){
+  const el=document.getElementById('member-list');
+  if(!el) return;
+  const q=(document.getElementById('member-search')?.value||'').toLowerCase();
+  const filtered=members.filter(m=>!q||m.name.toLowerCase().includes(q)||m.groupName.toLowerCase().includes(q)||m.groupType.toLowerCase().includes(q));
+  if(!filtered.length){
+    el.innerHTML=q?'<div class="empty"><div class="empty-icon">🔍</div>No members match.</div>':'<div class="empty"><div class="empty-icon">👥</div>No members yet.</div>';
+    return;
+  }
+  // Group by type then name
+  const byType={};
+  filtered.forEach(m=>{
+    const key=m.groupType+'::'+m.groupName;
+    if(!byType[key]) byType[key]={type:m.groupType,name:m.groupName,members:[]};
+    byType[key].members.push(m);
+  });
+  const keys=Object.keys(byType).sort();
+  el.innerHTML=keys.map(k=>{
+    const g=byType[k];
+    return `<div class="card">
+      <div class="unit-label"><span>${escH(g.type)}: ${escH(g.name)}</span><span style="font-weight:400;color:var(--grey-3)">${g.members.length}</span></div>
+      ${g.members.map(m=>`
+        <div class="member-row">
+          <div style="display:flex;align-items:center;gap:10px">
+            <div class="avatar">${initials(m.name)}</div>
+            <div><div style="font-size:14px;font-weight:500">${escH(m.name)}</div><div style="font-size:11px;color:var(--grey-3)">${escH(m.groupType)} · ${escH(m.groupName)}</div></div>
+          </div>
+          <button class="del-btn" onclick="deleteMember('${m.id}')">×</button>
+        </div>`).join('')}
+    </div>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════════════════════
+// ADMIN: LIVE OVERVIEW
+// ══════════════════════════════════════════════════════
+function renderOverviewDate(){
+  document.getElementById('ov-date').value=new Date().toISOString().split('T')[0];
+}
+
+function renderOverview(){
+  const el=document.getElementById('overview-out');
+  const date=document.getElementById('ov-date').value;
+  const svc=document.getElementById('ov-service').value;
+  if(!date){ el.innerHTML='<div class="empty"><div class="empty-icon">📅</div>Select a date.</div>'; return; }
+
+  const session=sessions.find(s=>s.date===date&&s.service===svc);
+  const groups=allGroups();
+
+  if(!groups.length){ el.innerHTML='<div class="empty"><div class="empty-icon">👥</div>No members added yet.</div>'; return; }
+
+  // Overall metrics
+  let totalPresent=0,totalMembers=0;
+  groups.forEach(g=>{
+    const gMembers=membersOfGroup(g.type,g.name);
+    totalMembers+=gMembers.length;
+    if(session) gMembers.forEach(m=>{ if(session.records[m.id]) totalPresent++; });
+  });
+
+  const lastSaved=session?.saved?new Date(session.saved).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}):'Not yet saved';
+
+  let html=`<div class="metrics">
+    <div class="metric"><div class="metric-val">${groups.length}</div><div class="metric-label">Groups</div></div>
+    <div class="metric"><div class="metric-val">${session?totalPresent:0}</div><div class="metric-label">Present</div></div>
+    <div class="metric"><div class="metric-val">${session?pct(totalPresent,totalMembers):0}%</div><div class="metric-label">Rate</div></div>
+  </div>`;
+
+  if(session){
+    html+=`<div style="font-size:12px;color:var(--grey-3);text-align:center;margin-bottom:12px">Last updated: ${lastSaved}</div>`;
+  } else {
+    html+=`<div class="notice">No attendance recorded for this session yet.</div>`;
+  }
+
+  // Group-by-type sections
+  groupTypes().forEach(type=>{
+    const typeGroups=groups.filter(g=>g.type===type);
+    if(!typeGroups.length) return;
+    html+=`<div style="font-size:11px;font-weight:700;color:var(--grey-3);text-transform:uppercase;letter-spacing:.08em;margin:16px 0 8px">${type}s</div>`;
+    typeGroups.forEach(g=>{
+      const gm=membersOfGroup(g.type,g.name);
+      let gp=0;
+      if(session) gm.forEach(m=>{ if(session.records[m.id]) gp++; });
+      const rate=pct(gp,gm.length);
+      const hasData=!!session;
+      html+=`<div class="group-card">
+        <div class="group-header">
+          <div>
+            <div class="group-name">${escH(g.name)}</div>
+            <div class="group-type">${g.type}</div>
+          </div>
+          <div class="group-stat">
+            <div class="big">${hasData?gp+'/'+gm.length:'—'}</div>
+            <div class="small">${hasData?rate+'% attendance':'No data'}</div>
+          </div>
+        </div>
+        <div class="progress-bar"><div class="progress-fill${rate>=75?' good':''}" style="width:${hasData?rate:0}%"></div></div>
+      </div>`;
+    });
+  });
+
+  el.innerHTML=html;
+}
+
+// ══════════════════════════════════════════════════════
+// ATTENDANCE
+// ══════════════════════════════════════════════════════
+function populateAttGroupSelect(){
+  if(currentUser?.role!=='admin') return;
+  const el=document.getElementById('att-group-select');
+  if(!el) return;
+  const groups=allGroups();
+  el.innerHTML='<option value="">— Select group —</option>'+
+    groups.map(g=>`<option value="${escH(g.type+'::'+g.name)}">${escH(g.type)}: ${escH(g.name)}</option>`).join('');
+}
+
+function getAttMembers(){
+  if(currentUser.role==='admin'){
+    const v=document.getElementById('att-group-select')?.value;
+    if(!v) return [];
+    const [type,...rest]=v.split('::');
+    const name=rest.join('::');
+    return membersOfGroup(type,name);
+  } else {
+    return membersOfGroup(currentUser.groupType,currentUser.groupName);
+  }
+}
+
+function loadAtt(){
+  const date=document.getElementById('att-date').value;
+  const svc=document.getElementById('att-service').value;
+  if(!date){ toast('Pick a date','err'); return; }
+  const attMembers=getAttMembers();
+  if(!attMembers.length){ toast(currentUser.role==='admin'?'Select a group first':'No members in your group','err'); return; }
+  const existing=sessions.find(s=>s.date===date&&s.service===svc);
+  cur={date,service:svc,records:existing?{...existing.records}:{}};
+  attMembers.forEach(m=>{ if(!(m.id in cur.records)) cur.records[m.id]=false; });
+  renderAttList();
+  updateMetrics();
+  document.getElementById('att-metrics').style.display='';
+  document.getElementById('att-search-wrap').style.display='';
+  toast('Session loaded','ok');
+}
+
+function renderAttList(){
+  const el=document.getElementById('att-list');
+  const attMembers=getAttMembers();
+  if(!attMembers.length){ el.innerHTML=''; return; }
+  const q=(document.getElementById('att-search')?.value||'').toLowerCase();
+  const filtered=attMembers.filter(m=>!q||m.name.toLowerCase().includes(q));
+  el.innerHTML=`<div class="card">
+    <div class="unit-label"><span>${escH(filtered[0]?.groupType||'')}: ${escH(filtered[0]?.groupName||'')}</span><span style="font-weight:400;color:var(--grey-3)">${filtered.filter(m=>cur.records[m.id]).length}/${filtered.length}</span></div>
+    ${filtered.map(m=>`
+      <div class="att-row">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div class="avatar">${initials(m.name)}</div>
+          <span style="font-size:14px;font-weight:500">${escH(m.name)}</span>
+        </div>
+        <button class="toggle${cur.records[m.id]?' present':''}" id="t-${m.id}" onclick="toggleAtt('${m.id}')">
+          ${cur.records[m.id]?'✓ Present':'Absent'}
+        </button>
+      </div>`).join('')}
+  </div>`;
+}
+
+function toggleAtt(id){
+  if(!cur.date){ toast('Load a session first','err'); return; }
+  cur.records[id]=!cur.records[id];
+  const btn=document.getElementById('t-'+id);
+  if(btn){ btn.textContent=cur.records[id]?'✓ Present':'Absent'; btn.className='toggle'+(cur.records[id]?' present':''); }
+  updateMetrics();
+}
+
+function markAll(val){
+  if(!cur.date){ toast('Load a session first','err'); return; }
+  getAttMembers().forEach(m=>{ cur.records[m.id]=val; });
+  renderAttList(); updateMetrics();
+}
+
+function updateMetrics(){
+  const attMembers=getAttMembers();
+  const vals=attMembers.map(m=>cur.records[m.id]);
+  const p=vals.filter(Boolean).length;
+  document.getElementById('m-p').textContent=p;
+  document.getElementById('m-a').textContent=vals.length-p;
+  document.getElementById('m-r').textContent=vals.length?pct(p,vals.length)+'%':'—';
+}
+
+function saveAtt(){
+  if(!cur.date){ toast('Load a session first','err'); return; }
+  sessions=sessions.filter(s=>!(s.date===cur.date&&s.service===cur.service));
+  sessions.push({...cur,saved:new Date().toISOString()});
+  save('ccf_sessions',sessions);
+  toast('Attendance saved ✓','ok');
+}
+
+function submitWhatsApp(){
+  if(!cur.date){ toast('Load and mark a session first','err'); return; }
+  const attMembers=getAttMembers();
+  const present=attMembers.filter(m=>cur.records[m.id]);
+  const absent=attMembers.filter(m=>m.id in cur.records&&!cur.records[m.id]);
+  const total=attMembers.length;
+  const groupLabel=attMembers[0]?attMembers[0].groupType+': '+attMembers[0].groupName:'';
+  const msg=`📋 *CCF ATTENDANCE REPORT*\n━━━━━━━━━━━━━━━━━━\n📅 Date: ${cur.date}\n🕐 Service: ${cur.service}\n🏷️ Group: ${groupLabel}\n👥 Present: ${present.length} of ${total} (${pct(present.length,total)}%)\n━━━━━━━━━━━━━━━━━━\n\n✅ Present:\n${present.map(m=>m.name).join(', ')||'None'}\n\n❌ Absent:\n${absent.map(m=>m.name).join(', ')||'None'}\n━━━━━━━━━━━━━━━━━━\n_Submitted via CCF Attendance · Light To Our Generation_`;
+  window.open('https://wa.me/'+ADMIN_PHONE+'?text='+encodeURIComponent(msg),'_blank');
+}
+
+// ══════════════════════════════════════════════════════
+// HISTORY
+// ══════════════════════════════════════════════════════
+function renderHistory(){
+  const filter=document.getElementById('hist-filter').value;
+  const el=document.getElementById('history-list');
+  let list=sessions.filter(s=>!filter||s.service===filter).sort((a,b)=>b.date.localeCompare(a.date));
+
+  // Leaders only see sessions relevant to their group
+  if(currentUser?.role==='leader'){
+    const gm=membersOfGroup(currentUser.groupType,currentUser.groupName).map(m=>m.id);
+    list=list.filter(s=>gm.some(id=>id in s.records));
+  }
+
+  if(!list.length){ el.innerHTML='<div class="empty"><div class="empty-icon">📅</div>No sessions recorded yet.</div>'; return; }
+
+  el.innerHTML=list.map(s=>{
+    // Compute stats for relevant members only
+    let relevantIds;
+    if(currentUser?.role==='leader'){
+      relevantIds=new Set(membersOfGroup(currentUser.groupType,currentUser.groupName).map(m=>m.id));
+    } else { relevantIds=null; }
+
+    const recs=Object.entries(s.records).filter(([id])=>!relevantIds||relevantIds.has(id));
+    const p=recs.filter(([,v])=>v).length;
+    const t=recs.length;
+    const rate=pct(p,t);
+
+    return `<div class="hist-row">
+      <div style="flex:1;min-width:0">
+        <div style="font-size:15px;font-weight:600">${s.date}</div>
+        <div style="font-size:12px;color:var(--grey-3);margin-top:2px">${p} of ${t} present</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
+        <span class="badge ${s.service==='Thursday'?'badge-thu':'badge-sun'}">${s.service}</span>
+        <span class="badge ${rate>=75?'badge-ok':'badge-low'}">${rate}%</span>
+        ${currentUser?.role==='admin'?`<button onclick="deleteSession('${s.date}','${s.service}')" style="background:none;border:none;color:var(--grey-3);font-size:18px;cursor:pointer;padding:2px 4px">🗑</button>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function deleteSession(date,svc){
+  if(!confirm('Delete this session?')) return;
+  sessions=sessions.filter(s=>!(s.date===date&&s.service===svc));
+  save('ccf_sessions',sessions);
+  renderHistory();
+  toast('Session deleted');
+}
+
+// ══════════════════════════════════════════════════════
+// REPORTS (Admin only)
+// ══════════════════════════════════════════════════════
+function renderReport(){
+  const filter=document.getElementById('rep-filter')?.value||'';
+  const el=document.getElementById('report-out');
+  if(!el) return;
+  const list=sessions.filter(s=>!filter||s.service===filter);
+  if(!list.length){ el.innerHTML='<div class="empty"><div class="empty-icon">📊</div>No sessions yet.</div>'; return; }
+
+  const totP=list.reduce((a,s)=>a+Object.values(s.records).filter(Boolean).length,0);
+  const totM=list.reduce((a,s)=>a+Object.values(s.records).length,0);
+
+  let html=`<div class="metrics">
+    <div class="metric"><div class="metric-val">${list.length}</div><div class="metric-label">Sessions</div></div>
+    <div class="metric"><div class="metric-val">${totM?Math.round(totP/list.length):0}</div><div class="metric-label">Avg present</div></div>
+    <div class="metric"><div class="metric-val">${totM?pct(totP,totM):0}%</div><div class="metric-label">Avg rate</div></div>
+  </div>`;
+
+  // By group type
+  groupTypes().forEach(type=>{
+    const typeGroups=groupsOfType(type);
+    if(!typeGroups.length) return;
+    html+=`<div class="card"><div class="card-title">${type}s</div>`;
+    typeGroups.forEach(gn=>{
+      const gm=membersOfGroup(type,gn);
+      let up=0,ut=0;
+      list.forEach(s=>gm.forEach(m=>{ if(m.id in s.records){ut++;if(s.records[m.id])up++;} }));
+      const rate=pct(up,ut);
+      html+=`<div style="margin-bottom:14px">
+        <div style="display:flex;justify-content:space-between;align-items:baseline">
+          <span style="font-weight:600;font-size:14px">${escH(gn)}</span>
+          <span style="font-size:13px;color:var(--grey-3)">${rate}% — ${gm.length} members</span>
+        </div>
+        <div class="progress-bar"><div class="progress-fill${rate>=75?' good':''}" style="width:${rate}%"></div></div>
+      </div>`;
+    });
+    html+='</div>';
+  });
+
+  // Individual
+  const sorted=[...members].sort((a,b)=>{
+    let ap=0,at=0,bp=0,bt=0;
+    list.forEach(s=>{ if(a.id in s.records){at++;if(s.records[a.id])ap++;} if(b.id in s.records){bt++;if(s.records[b.id])bp++;} });
+    return (bt?bp/bt:0)-(at?ap/at:0);
+  });
+  html+='<div class="card"><div class="card-title">Individual summary</div>';
+  sorted.forEach(m=>{
+    let mp=0,mt=0;
+    list.forEach(s=>{ if(m.id in s.records){mt++;if(s.records[m.id])mp++;} });
+    const rate=pct(mp,mt);
+    html+=`<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--grey-1)">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div class="avatar">${initials(m.name)}</div>
+        <div><div style="font-size:14px;font-weight:500">${escH(m.name)}</div><div style="font-size:11px;color:var(--grey-3)">${escH(m.groupType)} · ${escH(m.groupName)}</div></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <span style="font-size:12px;color:var(--grey-3)">${mp}/${mt}</span>
+        <span class="badge ${rate>=75?'badge-ok':'badge-low'}">${rate}%</span>
+      </div>
+    </div>`;
+  });
+  html+='</div>';
+  el.innerHTML=html;
+}
+
+function exportCSV(){
+  const filter=document.getElementById('rep-filter')?.value||'';
+  const list=sessions.filter(s=>!filter||s.service===filter);
+  if(!list.length){ toast('No data to export','err'); return; }
+  let rows=[['Name','GroupType','GroupName','Date','Service','Status']];
+  list.forEach(s=>members.forEach(m=>{ if(m.id in s.records) rows.push([m.name,m.groupType,m.groupName,s.date,s.service,s.records[m.id]?'Present':'Absent']); }));
+  const csv=rows.map(r=>r.map(c=>'"'+String(c).replace(/"/g,'""')+'"').join(',')).join('\n');
+  const a=document.createElement('a');
+  a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
+  a.download='CCF_Attendance.csv';
+  a.click();
+  toast('CSV downloaded ✓','ok');
+}
+
+// ══════════════════════════════════════════════════════
+// SETTINGS
+// ══════════════════════════════════════════════════════
+function populateSettingsGroupList(){
+  const el=document.getElementById('group-list-settings');
+  if(!el) return;
+  const groups=allGroups();
+  if(!groups.length){ el.innerHTML='<div style="font-size:13px;color:var(--grey-3)">No groups yet. Add members first.</div>'; return; }
+  el.innerHTML=groups.map(g=>`
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--grey-1)">
+      <div>
+        <div style="font-size:14px;font-weight:500">${escH(g.name)}</div>
+        <div style="font-size:11px;color:var(--grey-3)">${g.type} · ${membersOfGroup(g.type,g.name).length} members</div>
+      </div>
+    </div>`).join('');
+}
+
+function openModal(){ document.getElementById('pin-modal').classList.add('show'); }
+function closeModal(){
+  document.getElementById('pin-modal').classList.remove('show');
+  document.getElementById('old-pin').value='';
+  document.getElementById('new-pin').value='';
+  document.getElementById('confirm-pin').value='';
+}
+
+function changePin(){
+  const oldPin=document.getElementById('old-pin').value;
+  const newPin=document.getElementById('new-pin').value;
+  const confirmPin=document.getElementById('confirm-pin').value;
+
+  const isAdmin=currentUser.role==='admin';
+  const correctOld=isAdmin?adminPin:leaderPin;
+
+  if(oldPin!==correctOld){ toast('Current PIN is incorrect','err'); return; }
+  if(!/^\d{4}$/.test(newPin)){ toast('New PIN must be 4 digits','err'); return; }
+  if(newPin!==confirmPin){ toast('PINs do not match','err'); return; }
+
+  if(isAdmin){
+    adminPin=newPin;
+    localStorage.setItem(ADMIN_PIN_KEY,newPin);
+  } else {
+    leaderPin=newPin;
+    localStorage.setItem(LEADER_PIN_KEY,newPin);
+  }
+
+  closeModal();
+  toast('PIN changed ✓','ok');
+
+  // Update settings info
+  const si=document.getElementById('settings-role-info');
+  if(isAdmin) si.innerHTML='Signed in as <strong>Admin</strong><br>Default leader PIN: <strong>'+leaderPin+'</strong>';
+}
+
+// ══════════════════════════════════════════════════════
+// iOS INSTALL TIP
+// ══════════════════════════════════════════════════════
+const isIOS=/iphone|ipad|ipod/i.test(navigator.userAgent);
+const isStandalone=window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone;
+if(isIOS&&!isStandalone&&!localStorage.getItem('ios_tip_dismissed')){
+  setTimeout(()=>document.getElementById('ios-tip').classList.add('show'),3000);
+}
+
+// Service Worker for offline
+if('serviceWorker' in navigator){
+  const sw=`const C='ccf-v2';self.addEventListener('install',e=>{self.skipWaiting();});self.addEventListener('activate',e=>{e.waitUntil(self.clients.claim());});self.addEventListener('fetch',e=>{e.respondWith(fetch(e.request).catch(()=>new Response('Offline')));});`;
+  const swBlob=new Blob([sw],{type:'application/javascript'});
+  navigator.serviceWorker.register(URL.createObjectURL(swBlob)).catch(()=>{});
+}
+</script>
+</body>
+</html>
